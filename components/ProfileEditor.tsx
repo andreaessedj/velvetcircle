@@ -160,10 +160,7 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({ user, onUpdate, onClose }
         const files = e.target.files;
         if (!files || files.length === 0) return;
 
-        if (vaultPrice !== 0 && vaultPrice < 6) {
-            alert(t('profile_editor.alerts.vault_price_min'));
-            return;
-        }
+        // Limit removed: users can now set prices from 1 credit upwards. 0 is free.
 
         setUploadingVault(true);
         try {
@@ -190,10 +187,7 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({ user, onUpdate, onClose }
     const addLinkToVault = async () => {
         if (!linkInput.trim()) return;
 
-        if (vaultPrice !== 0 && vaultPrice < 6) {
-            alert(t('profile_editor.alerts.vault_price_min'));
-            return;
-        }
+        // Limit removed: users can now set prices from 1 credit upwards. 0 is free.
 
         setUploadingVault(true);
         try {
@@ -228,10 +222,7 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({ user, onUpdate, onClose }
     };
 
     const savePhotoEdit = async () => {
-        if (editPrice !== 0 && editPrice < 6) {
-            alert(t('profile_editor.alerts.vault_price_min'));
-            return;
-        }
+        // Limit removed: users can now set prices from 1 credit upwards. 0 is free.
         const newVault = vault.map(item =>
             item.id === editingPhotoId ? { ...item, price: editPrice } : item
         );
