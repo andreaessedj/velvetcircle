@@ -121,9 +121,13 @@ export default async function handler(req, res) {
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    const CREDIT_ITEM_CODE = process.env.KOFI_CREDITS_ITEM_CODE || "";
+    const CREDIT_ITEM_CODES = (process.env.KOFI_CREDITS_ITEM_CODE || "")
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean);
+      
     const VIP_ITEM_CODE = process.env.KOFI_VIP_ITEM_CODE || "";
-    const CREDITS_PER_EUR = parseInt(process.env.CREDITS_PER_EUR || "100", 10);
+    const CREDITS_PER_EUR = parseInt(process.env.CREDITS_PER_EUR || "10", 10); // Changed default to 10 as it's more common for 1 EUR = 10 Credits
     const VIP_DAYS = parseInt(process.env.VIP_DAYS || "30", 10);
 
     if (!KOFI_VERIFICATION_TOKEN || !supabaseUrl || !supabaseServiceKey) {
@@ -135,30 +139,35 @@ export default async function handler(req, res) {
 
     const rawBody = await readRawBody(req);
 
-    console.log("Incoming content-type:", req.headers["content-type"]);
-    console.log(
-      "req.body keys:",
-      req.body && typeof req.body === "object" ? Object.keys(req.body) : "n/a"
-    );
-
+    console.log("--- KO-FI WEBHOOK START ---");
+    console.log("Content-Type:", req.headers["content-type"]);
+    
     const payload = parseKofiPayload(req, rawBody);
     if (!payload) {
-      console.error("Bad Ko-fi payload parse");
+      console.error("Bad Ko-fi payload parse. Raw body preview:", rawBody.substring(0, 200));
       return res.status(400).send("Bad payload");
     }
 
-    console.log("Ko-fi payload type:", payload.type);
-    console.log("Ko-fi has token:", Boolean(payload.verification_token));
+    console.log("Payload Type:", payload.type);
+    console.log("Email:", payload.email);
+    console.log("Amount:", extractAmount(payload));
+    
+    const itemCodes = getShopItemCodes(payload).map(c => c.trim().toLowerCase());
+    console.log("Shop Item Codes in Payload:", itemCodes);
+    console.log("Configured Credit Codes:", CREDIT_ITEM_CODES);
 
     if (payload.verification_token !== KOFI_VERIFICATION_TOKEN) {
-      console.error("Invalid verification_token:", payload.verification_token);
+      console.error("Invalid verification_token");
       return res.status(403).send("Forbidden");
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const payerEmail = payload.email ? String(payload.email).trim() : null;
-    if (!payerEmail) return res.status(200).send("OK");
+    if (!payerEmail) {
+      console.warn("No email in payload, skipping user update");
+      return res.status(200).send("OK");
+    }
 
     const { data: userProfile, error: searchError } = await supabase
       .from("profiles")
@@ -172,72 +181,54 @@ export default async function handler(req, res) {
     }
     if (!userProfile) {
       console.error("User not found for email:", payerEmail);
+      // Still return 200 so Ko-fi doesn't keep retrying
       return res.status(200).send("OK");
     }
 
     const type = String(payload.type || "");
-    const itemCodes = getShopItemCodes(payload).map(c => c.trim().toLowerCase());
-
-    console.log("Shop item codes (normalized):", itemCodes);
 
     // --- CREDITI ---
     const creditsPackMap = parseCreditsPackMap();
-
-    // Codici forzati (hardcoded per sicurezza)
-    const CODE_10 = "f4ec730844";
-    const CODE_50 = "fa098d3767";
-
+    
     // Verifichiamo se l'item code corrisponde ESPLICITAMENTE a un pacchetto crediti
-    // Usiamo una ricerca flessibile (case-insensitive)
-    const matchedCode = itemCodes.find(code =>
-      code === CODE_10.toLowerCase() ||
-      code === CODE_50.toLowerCase() ||
-      (creditsPackMap && creditsPackMap[code] != null)
-    );
+    let creditsToAdd = 0;
+    let foundCreditCode = null;
 
-    const isCreditsPurchase =
-      (CREDIT_ITEM_CODE && itemCodes.includes(CREDIT_ITEM_CODE.toLowerCase())) ||
-      matchedCode != null;
+    // 1. Cerca nei codici configurati in KOFI_CREDITS_ITEM_CODE
+    for (const code of itemCodes) {
+      if (CREDIT_ITEM_CODES.includes(code)) {
+        foundCreditCode = code;
+        break;
+      }
+    }
+
+    // 2. Se non trovato, cerca nel fallback o nella mappa estesa
+    if (!foundCreditCode) {
+      foundCreditCode = itemCodes.find(code => creditsPackMap[code] != null);
+    }
+
+    const isCreditsPurchase = foundCreditCode != null;
 
     if (isCreditsPurchase) {
-      let creditsToAdd = 0;
-
-      // 1) Se il codice è uno di quelli forzati, usiamo il valore fisso (metodo più sicuro)
-      if (matchedCode === CODE_10.toLowerCase()) creditsToAdd = 10;
-      else if (matchedCode === CODE_50.toLowerCase()) creditsToAdd = 50;
-
-      // 2) Altrimenti usiamo la mappa se esiste
-      if (creditsToAdd === 0 && creditsPackMap && matchedCode) {
-        creditsToAdd = Number(creditsPackMap[matchedCode]) || 0;
-      }
-
-      // 2) fallback: conversione da amount
-      if (creditsToAdd === 0) {
+      console.log(`Credit purchase detected for code: ${foundCreditCode}`);
+      
+      // Determina i crediti da aggiungere
+      if (creditsPackMap[foundCreditCode] != null) {
+        creditsToAdd = Number(creditsPackMap[foundCreditCode]);
+      } else {
+        // Fallback: se il codice è riconosciuto ma non è nella mappa (strano), 
+        // usiamo la conversione da ammontare o un default
         const amount = extractAmount(payload);
-        console.log("Extracted amount for credits:", amount);
         if (amount != null) {
           creditsToAdd = Math.max(0, Math.floor(amount * CREDITS_PER_EUR));
         }
       }
 
-      // ✅ MODIFICA: currentCredits robusto (evita NaN / stringhe strane / null)
       const parsedCurrent = Number(userProfile.credits);
       const currentCredits = Number.isFinite(parsedCurrent) ? parsedCurrent : 0;
-
       const newCredits = currentCredits + creditsToAdd;
 
-      // ✅ MODIFICA: guardia contro valori non validi
-      if (!Number.isFinite(newCredits)) {
-        console.error("newCredits is not finite:", {
-          currentCredits,
-          creditsToAdd,
-          newCredits,
-          rawCredits: userProfile.credits,
-        });
-        return res.status(500).send("Bad credits math");
-      }
-
-      console.log(`Credits calc: current=${currentCredits} add=${creditsToAdd} new=${newCredits}`);
+      console.log(`Credits calc: current=${currentCredits} + add=${creditsToAdd} = ${newCredits}`);
 
       const { data: updated, error: creditError } = await supabase
         .from("profiles")
@@ -251,7 +242,7 @@ export default async function handler(req, res) {
         return res.status(500).send("DB Credit Update Error");
       }
 
-      console.log("Credits after update (DB):", updated?.credits);
+      console.log("Credits updated successfully. New balance:", updated?.credits);
       return res.status(200).send("OK");
     }
 
