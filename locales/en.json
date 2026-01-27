@@ -1,0 +1,623 @@
+{
+    "landing": {
+        "private_members_club": "Private Members Club",
+        "access_reserved": "Private Access",
+        "age_gate_text": "You are about to enter a community dedicated to consenting adults. Content and interactions are intended exclusively for an adult audience interested in the swinging lifestyle.",
+        "over_18": "I am over 18",
+        "exit": "Exit site",
+        "features": {
+            "voyeur": {
+                "title": "Voyeur & Exhibition",
+                "desc": "Watch or be watched."
+            },
+            "scambio": {
+                "title": "Swinging",
+                "desc": "Authentic connections."
+            },
+            "prive": {
+                "title": "Exclusive Privè",
+                "desc": "Limited attendance events."
+            }
+        },
+        "access_club": "Access the Club",
+        "discretion_guaranteed": "Discretion guaranteed. No data shared externally."
+    },
+    "app": {
+        "loading": "Initializing Velvet Circle...",
+        "beta_marquee": "BETA TEST IN PROGRESS — ALL FEATURES ARE FREE — REPORT BUGS TO THE ADMIN",
+        "beta_welcome_title": "Welcome to the Velvet Club Beta",
+        "beta_welcome_text": "We are pleased to have you with us during this refinement phase. Your participation is essential for the growth of our community.",
+        "beta_welcome_vip_commitment": "If you decide to actively commit to the growth of the club, by sending a message to the administrator, you can request the activation of free VIP Membership for the first months.",
+        "beta_welcome_contact_admin": "For any information or to activate VIP privileges, do not hesitate to contact the administrator.",
+        "beta_welcome_close": "Start Exploration",
+        "admin_not_found": "Administrator not found. Contact support if you need help.",
+        "admin_contact_error": "Error contacting the administrator.",
+        "beta_test": "BETA TEST",
+        "early_access": "EARLY ACCESS",
+        "report_bugs": "REPORT BUGS",
+        "work_in_progress": "WORK IN PROGRESS",
+        "beta_welcome": "Welcome to",
+        "beta_preview": "Beta Preview",
+        "what_is_beta": "What is this Beta?",
+        "beta_desc": "We are in the technical launch phase. All features are free.",
+        "tester_benefits": "Tester Benefits",
+        "tester_desc": "Most active users will receive free VIP Gold Membership at launch.",
+        "write_admin": "Write to Administrator",
+        "start_exploring": "Start Exploring"
+    },
+    "membership": {
+        "title": "Velvet Gold & Credits",
+        "subtitle": "\"Power up your experience. Exclusivity and medium of exchange for your desires.\"",
+        "membership_label": "Membership",
+        "recharge_label": "Recharge",
+        "vip_access": "VIP Access",
+        "per_month": "/ month",
+        "vip_features": {
+            "oracle": "The Oracle: AI Daily Match",
+            "velvet_key": "Velvet Key: Invite Friends",
+            "shadows": "Your Shadows: See who visits you",
+            "badge": "Golden Profile Badge"
+        },
+        "already_vip": "You are already VIP",
+        "expiry_label": "Subscription Expiry",
+        "activate_vip": "Activate VIP",
+        "credits_title": "Velvet Credits",
+        "current_balance": "CURRENT BALANCE",
+        "credits_label": "credits",
+        "credits_desc": "Use credits to purchase virtual gifts, unlock one-time features, and interact with AI Companions.",
+        "buy_credits": "Buy Credits",
+        "convert_to_euro": "Convert to Euro",
+        "secure_purchase_hint": "Secure purchase via Ko-fi. Payout via PayPal.",
+        "refresh_status": "I've completed a purchase, refresh status",
+        "velvet_key_section": {
+            "title": "The Velvet Key",
+            "desc": "As a VIP member, you have the power to invite new members into the Circle. Each key generated offers 3 days of free VIP trial to the new member.",
+            "used": "Used",
+            "active": "Active",
+            "forge_key": "Forge New Key"
+        },
+        "payout_modal": {
+            "title": "Request Payout",
+            "desc": "Convert your balance into Euro. Payment will be sent to your PayPal account.",
+            "warning_title": "WARNING:",
+            "warning_text": "Credits will NOT be immediately deducted from your balance. The administrator will receive your request, verify activity, and process payment manually. Only after payment confirmation will the balance be updated.",
+            "balance_label": "Your Current Balance",
+            "paypal_email_label": "PayPal Email",
+            "send_request": "Send Request"
+        },
+        "errors": {
+            "limit_reached": "Code limit reached or server error.",
+            "copy_success": "Code copied!",
+            "invalid_paypal": "Please enter a valid PayPal email address.",
+            "request_success": "Request sent successfully. The administrator will verify and process the payment.",
+            "request_error": "Error during request."
+        }
+    },
+    "radar": {
+        "title": "Radar",
+        "subtitle": "Find nearby members",
+        "live_tracking_active": "Tracking Active",
+        "users_nearby": "Users in range",
+        "list_view": "List",
+        "map_view": "Map",
+        "refresh": "Refresh",
+        "broadcast": {
+            "title": "Broadcast",
+            "desc": "Make yourself visible on the map for 4 hours.",
+            "privacy_shield_title": "Privacy Shield Active",
+            "privacy_shield_desc": "Your location is blurred (50m-200m).",
+            "live_tracking_desc": "In Live mode, the path will be updated while maintaining blurring.",
+            "message_label": "Check-in Message",
+            "messages": {
+                "drink": "Available for a drink",
+                "after": "Looking for after party",
+                "curious": "Just curious",
+                "company": "Looking for company",
+                "prive": "Private Prive"
+            },
+            "live_tracking": "Live Tracking",
+            "live_tracking_hint": "Share movements in real-time",
+            "activate_static": "Activate Radar (Static)",
+            "activate_live": "Start Live Tracking",
+            "stop_tracking": "Stop Tracking",
+            "launch_flare": "Launch Pulse Flare (VIP)",
+            "flare_active": "Flare Active • Pulsing...",
+            "vip_required": "Live Tracking is reserved for VIP members. Upgrade in the Membership section to activate real-time tracking."
+        },
+        "popup": {
+            "test_simulation": "Test Simulation",
+            "reach_btn": "Reach",
+            "write_btn": "Write",
+            "interactions_disabled": "Interactions disabled (Test)"
+        },
+        "errors": {
+            "not_supported": "Geolocation is not supported by your browser.",
+            "permission_denied": "Location permission denied.",
+            "position_unavailable": "Position unavailable.",
+            "timeout": "Position tracking timeout.",
+            "save_error": "Save error: {{details}}"
+        },
+        "no_signals": "No signals detected.",
+        "me_label": "Me",
+        "live_label": "Live",
+        "test_label": "Test",
+        "expires_label": "Expires",
+        "manage_live_tracking": "Manage Live Tracking",
+        "activate_your_position": "Activate position"
+    },
+    "oracle": {
+        "title": "The Oracle of Desire",
+        "desc": "Every day, the Velvet Circle AI selects only ONE perfect partner for you, analyzing deep compatibility and hidden desires.<br/><br/>This revelation is reserved for Inner Circle members.",
+        "vip_reserved": "Reserved for VIPs",
+        "consulting": "Consulting the stars...",
+        "prophecy_title": "Today's Prophecy",
+        "bio_label": "Bio",
+        "start_destiny": "Start Destiny",
+        "expired": "Expired",
+        "time_remaining": "{{hours}}h {{minutes}}m remaining",
+        "no_match": "The stars are silent today. No suitable match found."
+    },
+    "companion": {
+        "title": "Velvet Companions",
+        "desc": "Intelligent, seductive, and private conversations with virtual partners who remember your every word.<br/><br/>Available only for VIP members.",
+        "access_denied": "Access Denied",
+        "choose_companion": "Choose your Companion",
+        "who_to_spend": "Who do you wish to spend the evening with?",
+        "isabella_title": "The Enchantress",
+        "isabella_quote": "\"I love discovering deepest secrets... tell me yours.\"",
+        "gabriel_title": "The Gentleman",
+        "gabriel_quote": "\"I know what you want before you even say it. Test me.\"",
+        "smart": "Intelligent",
+        "seductive": "Seductive",
+        "dominant": "Dominant",
+        "charismatic": "Charismatic",
+        "online": "Online",
+        "start_conv": "Start Conversation",
+        "typing_placeholder": "Write to {{name}}...",
+        "ai_disclaimer": "Companions are virtual entities. Everything they say is AI-generated.",
+        "conversation_start": "CONVERSATION START"
+    },
+    "inbox": {
+        "title": "Messages",
+        "desc": "Your ephemeral connections. Messages self-destruct after 36 hours.",
+        "empty": "Your inbox is empty. Start exploring the Radar or Member Directory.",
+        "archived": "Archived (Expired)",
+        "active": "Active Conversation",
+        "last_contact": "Last contact: {{date}}"
+    },
+    "dashboard": {
+        "nav": {
+            "club": "Public Lounge",
+            "confessional": "Confessional",
+            "radar": "Radar",
+            "circles": "Secret Circles",
+            "members": "Followers",
+            "membership": "VIP",
+            "admin": "Admin Console",
+            "club_list": "Clubs"
+        },
+        "user_menu": {
+            "personal_space": "Personal Space",
+            "credits": "{{count}} Credits",
+            "messages": "Messages",
+            "visitors": "Your Shadows",
+            "manage_profile": "Manage Profile",
+            "logout": "Logout",
+            "explore": "Explore"
+        },
+        "mobile": {
+            "disconnect": "Disconnect"
+        }
+    },
+    "auth": {
+        "login_title": "Welcome Back",
+        "register_title": "Join the Circle",
+        "forgot_password_title": "Recover Password",
+        "login_sub": "Access your reserved space",
+        "register_sub": "Start your journey",
+        "forgot_password_sub": "Enter your email to reset",
+        "pseudonym": "Pseudonym",
+        "pseudonym_placeholder": "E.g. Marco & Giulia",
+        "role_select": "What are you?",
+        "roles": {
+            "COUPLE": "Couple",
+            "SINGLE_MALE": "Him",
+            "SINGLE_FEMALE": "Her",
+            "CLUB": "Club/Locale"
+        },
+        "person_type": "Person",
+        "club_type": "Club/Locale",
+        "club_name": "Club Name",
+        "club_address": "Address",
+        "club_city": "City",
+        "club_phone": "Phone / Contacts",
+        "club_photos": "Club Photos",
+        "club_photos_desc": "Upload photos of your location",
+        "velvet_key": "Velvet Key (Optional)",
+        "velvet_key_placeholder": "VC-XXXXXX",
+        "velvet_key_desc": "Enter an invite code to receive 3 days of free VIP membership.",
+        "email": "Email",
+        "password": "Password",
+        "forgot_password_link": "Forgotten?",
+        "login_btn": "Login",
+        "register_btn": "Register",
+        "reset_btn": "Reset Password",
+        "back_to_login": "Back to login",
+        "no_account": "Don't have an account? Register now",
+        "already_account": "Already have an account? Login",
+        "back_to_home": "Back to Home",
+        "forgot_password_success": "Recovery email sent! Check your inbox.",
+        "errors": {
+            "unknown": "Unknown error.",
+            "email_not_confirmed": "Email not confirmed. Since confirmation is disabled, this address is blocked. Use a NEW email.",
+            "user_already_registered": "Email already registered. Try logging in.",
+            "api_error": "Incorrect API configuration.",
+            "rate_limit": "Too many attempts. Please try again shortly.",
+            "invalid_login": "Invalid credentials.",
+            "bio_required": "Biography is mandatory.",
+            "desires_required": "Select at least one option in \"What are you looking for\".",
+            "limits_required": "Select at least one option in \"Your limits\"."
+        }
+    },
+    "chat": {
+        "send_error": "Error sending message",
+        "image_upload_error": "Image upload failed.",
+        "black_rose_vip": "The Black Rose is a VIP feature. Stand out with golden priority messages.",
+        "insufficient_credits": "Insufficient credits. Please recharge your balance.",
+        "tip_confirm": "Do you want to send a tip of {{amount}} credits to {{name}}?",
+        "tip_error": "Error sending tip",
+        "tip_success": "Tip of {{amount}} credits sent to {{name}}!",
+        "priority_message": "Priority Message",
+        "ephemeral_36h": "Ephemeral (36h)",
+        "empty_conv": "The conversation is empty.",
+        "break_ice_card": "Break the Ice with a Card",
+        "send_tip": "Send Tip",
+        "select_tip_amount": "Select the amount to send to {{name}}:",
+        "credits_plural": "CREDITS",
+        "credits_indicator": "Credits",
+        "black_rose_active": "Black Rose Active: Priority Sending",
+        "photo": "Photo",
+        "tip": "Tip",
+        "cards": "Cards",
+        "ephemeral": "Ephemeral",
+        "write_placeholder": "Write a message...",
+        "tooltips": {
+            "send_image": "Send Image",
+            "send_tip": "Send Tip",
+            "play_cards": "Play Velvet Cards",
+            "black_rose": "The Black Rose (VIP)",
+            "ephemeral_active": "Ephemeral Mode Active",
+            "ephemeral_inactive": "Activate Ephemeral Mode (VIP Only)"
+        }
+    },
+    "profile_editor": {
+        "title": "Profile Configuration",
+        "subtitle": "Customize your identity in the shadows",
+        "tabs": {
+            "details": "Details",
+            "vault": "Private Vault",
+            "settings": "Settings"
+        },
+        "details": {
+            "radar_active": "Radar Active",
+            "expires_at": "Expires at {{time}}",
+            "profile_image": "Profile Image",
+            "click_to_upload_avatar": "Click the image to upload a new one",
+            "or_enter_url": "Or enter a direct URL",
+            "hide_url": "Hide URL input",
+            "bio_label": "Your Bio",
+            "bio_placeholder": "Write something about yourself...",
+            "desires_label": "What You Seek",
+            "limits_label": "Your Limits",
+            "save_profile": "Save Profile"
+        },
+        "vault": {
+            "title": "Your Reserved Vault",
+            "description_part1": "Photos in this section are protected and visible only upon request or through",
+            "pay_per_view": "Pay-Per-View",
+            "price_free": "0 = Free",
+            "price_min": "Min 6 credits",
+            "price_placeholder": "Price",
+            "upload_btn": "Add Photo",
+            "add_link_btn": "Add Link",
+            "link_placeholder": "Enter URL (e.g. OnlyFans, Telegram, etc.)",
+            "empty": "Your vault is empty. Start populating it.",
+            "new_price": "Set New Price",
+            "free": "Free",
+            "type_image": "Photo",
+            "type_link": "Link"
+        },
+        "settings": {
+            "notif_title": "Notifications & Privacy",
+            "realtime_notif": "Real-time Notifications",
+            "notif_hint": "Receive instant alerts for important activities",
+            "notif_receive_for": "You will receive notifications for",
+            "notif_private_messages": "Private messages",
+            "notif_credits_received": "Credits received",
+            "notif_vault_access_requests": "Vault access requests",
+            "notif_new_profile_visitors": "New profile visitors",
+            "notif_oracle_matches": "Oracle matches",
+            "danger_zone": "Danger Zone",
+            "delete_desc_part1": "Account deletion is",
+            "delete_desc_permanent": "permanent",
+            "delete_desc_part2": "and cannot be undone. All your data will be removed from our servers.",
+            "are_you_sure": "Are you absolutely sure?",
+            "confirm_delete_btn": "Yes, Delete Account",
+            "delete_account_btn": "Delete Account"
+        },
+        "alerts": {
+            "save_success": "Profile updated successfully!",
+            "save_error": "Error while saving: {{details}}",
+            "avatar_success": "Avatar updated!",
+            "upload_error": "Error while uploading: {{details}}",
+            "vault_price_min": "The minimum price for paid photos is 6 credits.",
+            "vault_success": "Vault updated successfully!",
+            "delete_photo_confirm": "Are you sure you want to delete this photo?",
+            "delete_error": "Error while deleting.",
+            "update_error": "Error while updating.",
+            "checkin_delete_error": "Error during check-in closure.",
+            "delete_account_error": "Error during account deletion."
+        }
+    },
+    "visitors": {
+        "title": "Your Shadows",
+        "desc": "Discover who has been watching your profile in the darkness.",
+        "reserved": "Reserved Content",
+        "vip_desc": "Only VIP members can see the identity of their visitors. Currently <strong>{{count}}+ people</strong> have visited you.",
+        "upgrade_btn": "Upgrade Required",
+        "no_visitors": "No new shadows spotted recently.",
+        "anonymous": "Anonymous Member"
+    },
+    "secret_circles": {
+        "ephemeral_timer": "Ephemeral Chat (36h)",
+        "key_code": "Key Code",
+        "start_conv": "Start a secret conversation...",
+        "input_placeholder": "Write a message in the shadow...",
+        "members_title": "Circle Members ({{count}})",
+        "description_label": "Description",
+        "no_desc_hint": "In this circle there are no rules, only desires.",
+        "delete_btn": "Dissolve Circle",
+        "delete_confirm": "Are you sure you want to dissolve this circle? All messages and members will be permanently removed.",
+        "delete_error": "Error while deleting the circle.",
+        "create_title": "Summon a New Circle",
+        "create_desc": "Create a private and exclusive space. Only those who have the code can enter.",
+        "created_title": "Circle Created",
+        "created_desc": "Your domain is ready. Share this key only with those who are worthy.",
+        "key_code_label": "Access Code",
+        "back_to_list": "Back to List",
+        "circle_name_label": "Circle Name",
+        "name_placeholder": "e.g., The Night Owls",
+        "circle_desc_label": "Description (Optional)",
+        "desc_placeholder": "What is the purpose of this circle?",
+        "theme_label": "Theme",
+        "themes": {
+            "generic": "Generic",
+            "bdsm": "BDSM",
+            "swingers": "Swingers",
+            "events": "Events",
+            "women_only": "Women Only",
+            "men_only": "Men Only"
+        },
+        "create_btn_action": "Create Circle",
+        "join_title": "Join a Circle",
+        "join_desc": "Enter the secret code received to enter.",
+        "code_placeholder": "CODE",
+        "join_btn_action": "Enter",
+        "join_error": "Error during access.",
+        "list_title": "Your Circles",
+        "list_subtitle": "Private and exclusive groups you belong to.",
+        "join_nav_btn": "Join",
+        "create_nav_btn": "Create New",
+        "empty_title": "No Active Circles",
+        "empty_desc": "You are not yet part of any secret circle. Create your empire or get invited.",
+        "start_now": "Start Now",
+        "no_desc": "No description.",
+        "role_admin": "Creator",
+        "role_member": "Member"
+    },
+    "roles": {
+        "COUPLE": "Couple",
+        "SINGLE_MALE": "Him",
+        "SINGLE_FEMALE": "Her",
+        "ADMIN": "Admin"
+    },
+    "common": {
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "back_to_list": "Back to list",
+        "creating": "Creating...",
+        "verifying": "Verifying...",
+        "back_to_club": "Back to Club",
+        "date_locale": "en-US",
+        "upgrade_required": "Upgrade Required"
+    },
+    "lounge": {
+        "subtitle": "Live Lounge • No History",
+        "ghost_status": "Ghost Protocol Active",
+        "ghost_protocol": "GHOST PROTOCOL",
+        "privacy_warning": "ATTENTION: This is an ephemeral chat (\"Ghost Mode\"). No messages are saved in the database or server history. Messages are visible ONLY to currently online users and will be destroyed when closing the page or logging out.",
+        "input_placeholder": "Write an ephemeral message..."
+    },
+    "contact": {
+        "title": "Concierge Support",
+        "subtitle": "Contact Administration",
+        "success_title": "Message Sent",
+        "success_desc": "Velvet Circle administration has received your request. We will respond to your email as soon as possible.",
+        "topic_label": "Topic",
+        "message_label": "Describe the issue",
+        "placeholder": "How can we help you?",
+        "discretion_hint": "Discretion guaranteed. You will receive a response to the email associated with your profile.",
+        "send_btn": "Send Request",
+        "error_send": "Error sending request. Please try again later.",
+        "error_conn": "Connection error.",
+        "topics": {
+            "technical": "Technical Issues",
+            "report": "User Report",
+            "payments": "Payments & Credits",
+            "suggestions": "Suggestions",
+            "other": "Other"
+        }
+    },
+    "footer": {
+        "rules": "Rules",
+        "terms": "Terms",
+        "privacy": "Privacy",
+        "support": "Support"
+    },
+    "legal": {
+        "follow_shadow": "Follow the shadow",
+        "rules": {
+            "title": "The Code of the Circle",
+            "section1": {
+                "title": "1. Consent and Respect",
+                "content": "Consent is the cornerstone of Velvet Circle. Any interaction, be it digital (messages, cards) or physical (events, radar), must be based on the explicit consent of all parties involved. A \"no\" is final and does not admit replies. Lack of respect will lead to an immediate and permanent ban."
+            },
+            "section2": {
+                "title": "2. Prohibition of Recording",
+                "content": "It is strictly forbidden to take screenshots, video recordings, or any form of capture of others' content, especially within the Vault or private chats. Our community is built on trust; violating another member's privacy is considered the most serious crime within the Circle."
+            },
+            "section3": {
+                "title": "3. Honesty in Profiles",
+                "content": "We encourage sincerity. Using photos that do not belong to you or a deceptive identity harms the experience of other members. Verified profiles enjoy a higher reputation and more privileges (Trust Score)."
+            },
+            "section4": {
+                "title": "4. Ghost Protocol (Discretion)",
+                "content": "Interactions that occur in the Lounge are ephemeral. What happens in the Circle stays in the Circle. It is forbidden to share information obtained privately outside the platform."
+            }
+        },
+        "terms": {
+            "title": "Terms and Services",
+            "section1": {
+                "title": "The Contract with Velvet Circle",
+                "content": "By accessing Velvet Circle, you confirm that you are at least 18 years old (or the legal age in your country) and that you use the platform exclusively for recreational and consensual purposes among adults."
+            },
+            "section2": {
+                "title": "Velvet Credits and VIP",
+                "content": "Credits are a virtual currency used to interact with the platform's services (tips, Vault unlocking, AI Companion). Payments are made through secure external processors (Ko-fi). VIP members enjoy advantages such as the Oracle and the Velvet Key, but remain subject to common rules of conduct."
+            },
+            "section3": {
+                "title": "Radar Use",
+                "content": "The Radar function uses optional geolocation. Velvet Circle applies an automatic \"Jitter\" (blurring) to your position to protect your privacy, preventing the exact address from being visible to other members."
+            }
+        },
+        "privacy": {
+            "title": "Privacy & Ghost Mode",
+            "section1": {
+                "title": "Personal Data",
+                "content": "We only collect data necessary for your profile's operation: email, pseudonym, and content you upload to the Vault. Your emails are never sold or used for third-party marketing."
+            },
+            "section2": {
+                "title": "Ephemeral Protocol (Chat)",
+                "content": "All private messages have an expiration time of 36 hours, after which they are deleted from our systems. Public chat (\"The Club\") is not saved in any database; messages exist only in the volatile memory of the current session."
+            },
+            "section3": {
+                "title": "GDPR and Rights",
+                "content": "You can request full deletion of your account at any time. Deletion will instantly remove all your data, Vault content, and remaining credits."
+            }
+        }
+    },
+    "confessional": {
+        "title": "The Confessional",
+        "desc": "\"Give words to your desire and you will make it real. Here anonymity is sacred.\"",
+        "new_btn": "New Confession",
+        "vip_reserved": "Reserved Confession (VIP)",
+        "placeholder": "Tell your secret fantasy...",
+        "send_btn": "Send",
+        "empty": "No secrets revealed yet. Be the first.",
+        "anonymous": "Anonymous",
+        "comments_disabled": "Comments Disabled",
+        "tags": {
+            "fantasy": "Fantasy",
+            "real_story": "Real Story",
+            "voyeur": "Voyeur",
+            "exhibitionist": "Exhibitionist",
+            "desire": "Desire",
+            "secret": "Secret"
+        }
+    },
+    "members": {
+        "title": "Member Directory",
+        "subtitle": "Explore the Velvet Circle community.",
+        "search_placeholder": "Search by name or interests...",
+        "active": "Active",
+        "boost_desc": "Climb to the top. Get noticed at the top of the list in both \"All\" and your category.",
+        "renew_boost": "Renew Boost",
+        "boost_profile_btn": "Boost Profile",
+        "filter_all": "All",
+        "advanced_filters": "Advanced Filters",
+        "vip_feature_title": "VIP Feature",
+        "vip_filters_desc": "Advanced filters are reserved for Inner Circle members.",
+        "unlock_now": "Unlock Now",
+        "city_label": "City",
+        "everywhere": "Everywhere",
+        "desire_label": "Search Desire",
+        "any_desire": "Any",
+        "only_verified": "Verified Profiles Only",
+        "only_with_vault": "With Vault Photos Only",
+        "no_results": "No members match the search criteria.",
+        "verified_user": "Verified User",
+        "no_bio": "No bio entered.",
+        "view_profile": "Profile",
+        "message_btn": "Message",
+        "endorsed_btn": "Endorsed (Remove)",
+        "endorse_btn": "Endorse",
+        "report_btn": "Report",
+        "block_user_btn": "Block",
+        "no_bio_available": "No description available.",
+        "no_desires": "No desires specified.",
+        "no_limits": "No limits specified.",
+        "gallery_desc": "Reserved photo gallery.",
+        "empty_gallery": "This member hasn't uploaded any photos to the Vault yet.",
+        "boost_confirm": "Spend 3 credits to climb the rankings for 24 hours? You will be pinned at the top of this list!",
+        "boost_success": "BOOST ACTIVATED! Your profile now shines at the top of the list.",
+        "boost_error": "Error during boost activation.",
+        "blocked_message_error": "You cannot send messages to a blocked user.",
+        "block_confirm": "Are you sure you want to block this user? You will no longer see their messages.",
+        "block_success": "User blocked.",
+        "block_error": "Error during blocking",
+        "report_reason_prompt": "Reason for report:",
+        "report_success": "Report sent successfully.",
+        "report_error": "Error during reporting",
+        "buy_photo_error": "Error purchasing photo",
+        "trust_self_error": "You cannot endorse yourself.",
+        "trust_error": "Error updating endorsement",
+        "not_enough_credits_desc": "You are short on credits for this action.",
+        "unlock_photo_title": "Unlock Photo",
+        "unlock_item_title": "Unlock Content",
+        "unlock_photo_desc": "Do you want to unlock this photo for {{price}} credits?",
+        "unlock_link_desc": "Do you want to unlock this link for {{price}} credits?",
+        "confirm_unlock_btn": "Confirm Unlock",
+        "desires_list": {
+            "swingers": "Swinging",
+            "threesome_mmf": "Threesome MMF",
+            "threesome_ffm": "Threesome FFM",
+            "bdsm_soft": "BDSM Soft",
+            "just_drink": "Just Drink",
+            "voyeurism": "Voyeurism"
+        }
+    },
+    "clubs": {
+        "title": "Exclusive Clubs",
+        "subtitle": "The most refined locations of the circle",
+        "view_events": "View Events",
+        "events_at": "Events at",
+        "all_events": "All Events",
+        "no_clubs": "No clubs registered yet.",
+        "manager_title": "Club Manager",
+        "create_event": "Create New Event",
+        "club_info": "Club Information",
+        "address": "Address",
+        "city": "City",
+        "phone": "Phone / Contacts",
+        "photos": "Club Photos",
+        "locate_on_map": "Locate on map",
+        "locating": "Locating...",
+        "location_success": "Location updated successfully.",
+        "view_profile": "Profile",
+        "get_directions": "Get directions",
+        "contact_phone": "Contact phone",
+        "no_desc": "No description available for this club.",
+        "event_photos": "Event Photos (Up to 4)"
+    }
+}

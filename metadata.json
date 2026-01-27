@@ -1,0 +1,7 @@
+{
+  "name": "Velvet Circle - Exclusive Adult Club",
+  "description": "Una piattaforma riservata ed esclusiva per adulti, coppie e libertini alla ricerca di connessioni autentiche e piaceri condivisi.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
