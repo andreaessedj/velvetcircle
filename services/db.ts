@@ -1227,6 +1227,7 @@ export const api = {
   },
 
   markMessagesAsRead: async (myId: string, otherId: string): Promise<void> => {
+    // Rimuoviamo il cutoff per assicurarci di pulire TUTTI i messaggi vecchi non letti tra questi due utenti
     await supabase
       .from("private_messages")
       .update({ is_read: true })
@@ -1242,7 +1243,8 @@ export const api = {
     senderName?: string,
     isBlackRose = false,
     imageUrl?: string,
-    isEphemeral = false
+    isEphemeral = false,
+    price = 0
   ): Promise<void> => {
     // Check if either user is banned
     const { data: participants, error: banCheckError } = await supabase
@@ -1264,7 +1266,8 @@ export const api = {
         content: finalContent,
         image_url: imageUrl,
         is_ephemeral: isEphemeral,
-        is_read: false
+        is_read: false,
+        price: price
       }]);
     if (error) throw error;
     if (senderName) {
@@ -1278,6 +1281,21 @@ export const api = {
         })
       }).catch((e) => console.error(e));
     }
+  },
+
+  buyChatMessage: async (buyerId: string, messageId: string, price: number, sellerId: string): Promise<void> => {
+    // Usiamo lo stesso RPC buy_vault_item o simile se scalabile, 
+    // ma qui implementiamo una logica specifica per i messaggi se necessario.
+    // Per semplicità usiamo un RPC generico di trasferimento o buy_vault_item adattato
+    const { data, error } = await supabase.rpc("buy_chat_message", {
+      p_buyer_id: buyerId,
+      p_message_id: messageId,
+      p_price: price,
+      p_seller_id: sellerId
+    });
+
+    if (error) throw error;
+    if (data && !data.success) throw new Error(data.error || "Acquisto fallito");
   },
 
   getInbox: async (): Promise<InboxConversation[]> => {
