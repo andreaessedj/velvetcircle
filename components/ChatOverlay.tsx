@@ -43,6 +43,13 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                     }
                     return msgs;
                 });
+
+                // Marca come letti se ci sono messaggi non letti per me
+                const hasUnread = msgs.some(m => m.receiver_id === currentUser.id && !m.is_read);
+                if (hasUnread) {
+                    await api.markMessagesAsRead(currentUser.id, targetUser.id);
+                }
+
                 setLoading(false);
             } catch (e) {
                 console.error(e);

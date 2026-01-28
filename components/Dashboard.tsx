@@ -42,6 +42,7 @@ import ClubList from './features/ClubList';
 import ClubEvents from './features/ClubEvents';
 import ClubProfileView from './features/ClubProfileView';
 import { ClubProfile } from '../types';
+import { api } from '../services/db';
 
 interface DashboardProps {
   currentUser: User;
@@ -60,6 +61,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout, onUpdateUs
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [selectedClub, setSelectedClub] = useState<ClubProfile | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Ref per chiudere il menu utente quando si clicca fuori
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -88,6 +90,22 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout, onUpdateUs
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Fetch Unread Count
+  useEffect(() => {
+    const fetchUnread = async () => {
+      try {
+        const count = await api.getUnreadMessageCount(currentUser.id);
+        setUnreadCount(count);
+      } catch (e) {
+        console.error("Failed to fetch unread count", e);
+      }
+    };
+
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 10000); // Ogni 10s
+    return () => clearInterval(interval);
+  }, [currentUser.id]);
 
   // 1. NAVIGAZIONE GENERALE (Sidebar Principale)
   const mainNavItems: (({ id: DashboardView; label: string; icon: React.ElementType }) | { type: 'separator' })[] = [
@@ -233,10 +251,17 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout, onUpdateUs
                   <button
                     key={item.id}
                     onClick={() => { setActiveView(item.id); setIsUserMenuOpen(false); }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-neutral-800 transition-colors ${activeView === item.id ? 'text-crimson-500 bg-neutral-800/50' : 'text-neutral-300'}`}
+                    className={`w-full flex items-center justify-between px-4 py-3 hover:bg-neutral-800 transition-colors ${activeView === item.id ? 'text-crimson-500 bg-neutral-800/50' : 'text-neutral-300'}`}
                   >
-                    <item.icon className="w-4 h-4" />
-                    <span className="text-sm font-serif">{item.label}</span>
+                    <div className="flex items-center gap-3">
+                      <item.icon className="w-4 h-4" />
+                      <span className="text-sm font-serif">{item.label}</span>
+                    </div>
+                    {item.id === 'MESSAGES' && (
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${unreadCount > 0 ? 'bg-crimson-600 text-white animate-pulse' : 'bg-neutral-800 text-neutral-500'}`}>
+                        {unreadCount}
+                      </span>
+                    )}
                   </button>
                 ))}
 
@@ -352,13 +377,18 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout, onUpdateUs
                     setActiveView(item.id);
                     setIsMobileMenuOpen(false);
                   }}
-                  className={`p-3 border border-neutral-800 flex flex-col items-center justify-center gap-2 transition-all ${activeView === item.id
+                  className={`p-3 border border-neutral-800 flex flex-col items-center justify-center gap-2 transition-all relative ${activeView === item.id
                     ? 'bg-neutral-800 border-neutral-600 text-white'
                     : 'bg-neutral-900/30 text-neutral-400'
                     }`}
                 >
                   <item.icon className="w-5 h-5" />
                   <span className="text-xs font-serif text-center">{item.label}</span>
+                  {item.id === 'MESSAGES' && (
+                    <span className={`absolute top-1 right-1 text-[9px] font-black px-2 py-0.5 rounded-full shadow-lg ${unreadCount > 0 ? 'bg-crimson-600 text-white animate-pulse' : 'bg-neutral-800 text-neutral-600'}`}>
+                      {unreadCount}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
