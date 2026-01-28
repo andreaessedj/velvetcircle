@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { User, UserRole, VaultItem } from '../../types';
 import { api } from '../../services/db';
-import { Search, Users as UsersIcon, Loader, ShieldCheck, Sparkles, MessageSquare, Info, Lock, Key, Shield, ThumbsUp, X, Filter, MapPin, Image as ImageIcon, Zap, Coins, CreditCard, ChevronRight, ShoppingCart, Eye, Flame, Timer, UserX, Flag, Check as CheckIcon, Globe } from 'lucide-react';
+import { Search, Users as UsersIcon, Loader, ShieldCheck, Sparkles, MessageSquare, Info, Lock, Key, Shield, ThumbsUp, X, Filter, MapPin, Image as ImageIcon, Zap, Coins, CreditCard, ChevronRight, ShoppingCart, Eye, Flame, Timer, UserX, Flag, Check as CheckIcon, Globe, Grid } from 'lucide-react';
 
 interface MembersProps {
     currentUser: User;
@@ -35,6 +35,9 @@ const Members: React.FC<MembersProps> = ({ currentUser, onOpenChat, onUpdateUser
 
     // Full Screen Photo
     const [fullScreenPhoto, setFullScreenPhoto] = useState<string | null>(null);
+
+    // Active Bundle (Folder)
+    const [activeBundle, setActiveBundle] = useState<VaultItem | null>(null);
 
     // Filters
     const [searchQuery, setSearchQuery] = useState('');
@@ -729,15 +732,18 @@ const Members: React.FC<MembersProps> = ({ currentUser, onOpenChat, onUpdateUser
                                                     const isOwner = selectedUser.id === currentUser.id;
                                                     const isUnlocked = item.price === 0 || isPhotoUnlocked(item.id) || isOwner;
                                                     const isLink = item.type === 'LINK';
+                                                    const isBundle = item.type === 'BUNDLE';
 
                                                     return (
                                                         <div
                                                             key={i}
-                                                            className={`aspect-square bg-neutral-950 relative group/photo overflow-hidden border border-neutral-800 rounded-xl transition-all ${isUnlocked && !isLink ? 'cursor-zoom-in' : isUnlocked && isLink ? 'cursor-pointer' : ''} ${!isUnlocked ? 'hover:border-gold-900/50' : 'hover:border-crimson-900/50'}`}
+                                                            className={`aspect-square bg-neutral-950 relative group/photo overflow-hidden border border-neutral-800 rounded-xl transition-all ${isUnlocked && !isLink && !isBundle ? 'cursor-zoom-in' : isUnlocked ? 'cursor-pointer' : ''} ${!isUnlocked ? 'hover:border-gold-900/50' : 'hover:border-crimson-900/50'}`}
                                                             onClick={() => {
                                                                 if (isUnlocked) {
                                                                     if (isLink) {
                                                                         window.open(item.url.startsWith('http') ? item.url : `https://${item.url}`, '_blank');
+                                                                    } else if (isBundle) {
+                                                                        setActiveBundle(item);
                                                                     } else {
                                                                         setFullScreenPhoto(item.url);
                                                                     }
@@ -754,6 +760,26 @@ const Members: React.FC<MembersProps> = ({ currentUser, onOpenChat, onUpdateUser
                                                                         <span className="text-[8px] mt-2 bg-crimson-600 text-white px-2 py-0.5 rounded-full flex items-center gap-1">
                                                                             <ChevronRight className="w-2 h-2" /> {t('members.view_profile')}
                                                                         </span>
+                                                                    )}
+                                                                </div>
+                                                            ) : isBundle ? (
+                                                                <div className="w-full h-full relative">
+                                                                    <img
+                                                                        src={item.url}
+                                                                        className={`w-full h-full object-cover transition-all duration-[1.5s] ease-in-out ${isUnlocked ? 'group-hover/photo:scale-110 opacity-60' : 'blur-2xl opacity-40 grayscale scale-110'}`}
+                                                                        alt="Bundle Cover"
+                                                                    />
+                                                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40">
+                                                                        <Grid className={`w-10 h-10 mb-2 ${isUnlocked ? 'text-gold-500' : 'text-neutral-500'}`} />
+                                                                        <p className="text-[10px] text-white font-bold uppercase tracking-widest px-2 text-center drop-shadow-lg">
+                                                                            {isUnlocked ? (item.title || 'Collection') : 'Private Folder'}
+                                                                        </p>
+                                                                        {isUnlocked && <span className="text-[8px] text-neutral-300 mt-1 uppercase">{item.urls?.length || 0} Foto</span>}
+                                                                    </div>
+                                                                    {isUnlocked && (
+                                                                        <div className="absolute top-2 right-2 bg-gold-600/90 text-black text-[8px] px-1.5 py-0.5 rounded font-black">
+                                                                            UNLOCKED
+                                                                        </div>
                                                                     )}
                                                                 </div>
                                                             ) : (
