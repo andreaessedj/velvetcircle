@@ -48,6 +48,8 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                 const hasUnread = msgs.some(m => m.receiver_id === currentUser.id && !m.is_read);
                 if (hasUnread) {
                     await api.markMessagesAsRead(currentUser.id, targetUser.id);
+                    // Forza aggiornamento immediato della Dashboard
+                    window.dispatchEvent(new Event('velvetRefreshUnreadCount'));
                 }
 
                 setLoading(false);

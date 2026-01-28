@@ -104,7 +104,15 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout, onUpdateUs
 
     fetchUnread();
     const interval = setInterval(fetchUnread, 10000); // Ogni 10s
-    return () => clearInterval(interval);
+
+    // Listener per aggiornamento immediato
+    const handleManualRefresh = () => fetchUnread();
+    window.addEventListener('velvetRefreshUnreadCount', handleManualRefresh);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('velvetRefreshUnreadCount', handleManualRefresh);
+    };
   }, [currentUser.id]);
 
   // 1. NAVIGAZIONE GENERALE (Sidebar Principale)
