@@ -1209,21 +1209,18 @@ export const api = {
   },
 
   getUnreadMessageCount: async (userId: string): Promise<number> => {
-    const cutoff = new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString();
-    // Filtriamo i messaggi in modo che corrispondano solo agli utenti non bannati (come nell'Inbox)
-    const { data: unreadData, error } = await supabase
+    // Rimuoviamo il cutoff per essere sicuri di contare TUTTI i messaggi pendenti
+    const { data, error } = await supabase
       .from("private_messages")
-      .select("sender_id, sender:profiles!sender_id!inner(is_banned)")
+      .select("id")
       .eq("receiver_id", userId)
-      .or('is_read.is.null,is_read.eq.false')
-      .eq("sender.is_banned", false)
-      .gt("created_at", cutoff);
+      .or('is_read.is.null,is_read.eq.false');
 
     if (error) {
       console.error("Error fetching unread count:", error);
       return 0;
     }
-    return unreadData?.length || 0;
+    return data?.length || 0;
   },
 
   markMessagesAsRead: async (myId: string, otherId: string): Promise<void> => {
