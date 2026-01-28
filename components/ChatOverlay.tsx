@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User, PrivateMessage } from '../types';
 import { api } from '../services/db';
-import { X, Clock, Send, Loader, Gamepad2, Sparkles, Flame, Zap, Flower, Coins, Image as ImageIcon, ZapOff, Plus, Link as LinkIcon } from 'lucide-react';
+import { X, Clock, Send, Loader, Gamepad2, Sparkles, Flame, Zap, Flower, Coins, Image as ImageIcon, ZapOff, Plus } from 'lucide-react';
 import EphemeralMoment from './features/EphemeralMoment';
 import { useTranslation } from 'react-i18next';
 
@@ -28,9 +28,6 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
     const chatEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [showActions, setShowActions] = useState(false);
-    const [isPriceMode, setIsPriceMode] = useState(false);
-    const [priceValue, setPriceValue] = useState(0);
-    const [pendingPaidContent, setPendingPaidContent] = useState<{ type: 'PHOTO' | 'VIDEO' | 'LINK', data?: any, url?: string } | null>(null);
     const isInitialLoad = useRef(true);
 
     // Fetch and Poll messages
@@ -83,7 +80,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
         }
     }, [messages, currentUser.id]);
 
-    const handleSendMessage = async (text = newMessage, isBlackRose = false, imageUrl?: string, isEphemeral = isEphemeralMode, price = isPriceMode ? priceValue : 0) => {
+    const handleSendMessage = async (text = newMessage, isBlackRose = false, imageUrl?: string, isEphemeral = isEphemeralMode) => {
         if (!text.trim() && !imageUrl) return;
         try {
             // Optimistic update
@@ -96,18 +93,14 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                 created_at: new Date().toISOString(),
                 is_read: false,
                 is_black_rose: isBlackRose,
-                is_ephemeral: isEphemeral,
-                price: price,
-                unlocked_by: []
+                is_ephemeral: isEphemeral
             };
             setMessages(prev => [...prev, tempMsg]);
 
             if (text === newMessage) setNewMessage(''); // Clear input if it's the text field
             setIsEphemeralMode(false);
-            setIsPriceMode(false);
-            setPriceValue(0);
 
-            await api.sendPrivateMessage(currentUser.id, targetUser.id, text, currentUser.name, isBlackRose, imageUrl, isEphemeral, price);
+            await api.sendPrivateMessage(currentUser.id, targetUser.id, text, currentUser.name, isBlackRose, imageUrl, isEphemeral);
 
             // Refetch to get real ID and server timestamp
             const msgs = await api.getPrivateMessages(currentUser.id, targetUser.id);
@@ -118,16 +111,9 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
         }
     };
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isPaid = false) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-
-        if (isPaid) {
-            setPendingPaidContent({ type: file.type.startsWith('video/') ? 'VIDEO' : 'PHOTO', data: file });
-            setIsPriceMode(true);
-            setShowActions(false);
-            return;
-        }
 
         setUploadingImage(true);
         try {
@@ -142,22 +128,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
         }
     };
 
-    const handleConfirmPaidContent = async () => {
-        if (!pendingPaidContent || pendingPaidContent.type !== 'LINK' || !pendingPaidContent.url) return;
-        setUploadingImage(true);
-        try {
-            const finalContent = `Guarda qui: ${pendingPaidContent.url}`;
-            await handleSendMessage(finalContent, false, undefined, false, priceValue);
-            setPendingPaidContent(null);
-            setIsPriceMode(false);
-            setPriceValue(0);
-        } catch (e) {
-            console.error(e);
-            alert("Errore durante l'invio del link a pagamento.");
-        } finally {
-            setUploadingImage(false);
-        }
-    };
+
 
     const handleBlackRose = () => {
         if (!currentUser.isVip) {
@@ -205,31 +176,11 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
         }
     };
 
-    const handleUnlockMessage = async (msg: PrivateMessage) => {
-        if (!msg.price || msg.price <= 0) return;
-        if (currentUser.credits < msg.price && currentUser.role !== 'ADMIN') {
-            alert(t('chat.insufficient_credits'));
-            return;
-        }
 
-        if (!confirm(t('chat.unlock_confirm', { price: msg.price }))) return;
-
-        try {
-            await api.buyChatMessage(currentUser.id, msg.id, msg.price, msg.sender_id);
-            // Refetch messages
-            const msgs = await api.getPrivateMessages(currentUser.id, targetUser.id);
-            setMessages(msgs);
-        } catch (e: any) {
-            console.error(e);
-            alert(e.message || t('chat.unlock_error'));
-        }
-    };
 
     // Renderizza il contenuto interno del messaggio (Body)
     const renderMessageBody = (msg: PrivateMessage) => {
-        const { content, is_black_rose: isBlackRose, image_url: imageUrl, is_ephemeral: isEphemeral, ephemeral_reveals: ephemeralReveals, price, unlocked_by: unlockedBy, sender_id: senderId } = msg;
-
-        const isLocked = (price || 0) > 0 && senderId !== currentUser.id && !(unlockedBy || []).includes(currentUser.id) && currentUser.role !== 'ADMIN';
+        const { content, is_black_rose: isBlackRose, image_url: imageUrl, is_ephemeral: isEphemeral, ephemeral_reveals: ephemeralReveals } = msg;
 
         // 1. Velvet Cards
         if (content.startsWith(':::VELVET_CARD|')) {
@@ -302,20 +253,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                     </div>
                 )}
                 {imageUrl && (
-                    isLocked ? (
-                        <div className="mb-2 relative rounded-lg overflow-hidden border border-neutral-700 aspect-video bg-neutral-900 group">
-                            <img src={imageUrl} className="w-full h-full object-cover blur-2xl opacity-50 grayscale" alt="Locked content" />
-                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm transition-all group-hover:bg-black/20">
-                                <Plus className="w-8 h-8 text-gold-500 mb-2 drop-shadow-lg" />
-                                <button
-                                    onClick={() => handleUnlockMessage(msg)}
-                                    className="bg-gold-600 hover:bg-gold-500 text-black font-black px-4 py-2 rounded-full text-xs uppercase tracking-widest shadow-xl transform active:scale-95 transition-all"
-                                >
-                                    {t('chat.unlock_for', { price })}
-                                </button>
-                            </div>
-                        </div>
-                    ) : isEphemeral ? (
+                    isEphemeral ? (
                         <div className="mb-2 min-w-[240px]">
                             <EphemeralMoment
                                 imageUrl={imageUrl}
@@ -333,13 +271,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                         </div>
                     )
                 )}
-                {isLocked ? (
-                    <div className="p-3 bg-neutral-950/50 border border-dashed border-neutral-800 rounded-lg text-neutral-500 text-[10px] uppercase tracking-tighter italic">
-                        {t('chat.locked_content_desc')}
-                    </div>
-                ) : (
-                    <p className="text-sm font-sans whitespace-pre-wrap">{content}</p>
-                )}
+                <p className="text-sm font-sans whitespace-pre-wrap">{content}</p>
             </div>
         );
     };
@@ -524,74 +456,24 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                             <span className="text-[9px] uppercase font-bold text-center leading-tight">Black<br />Rose</span>
                         </button>
 
-                        <button
-                            onClick={() => { setPendingPaidContent({ type: 'LINK' }); setIsPriceMode(true); setShowActions(false); }}
-                            className={`flex flex-col items-center justify-center min-w-[70px] p-3 border transition-all gap-1 rounded-xl ${isPriceMode && pendingPaidContent?.type === 'LINK'
-                                ? 'bg-indigo-900/40 border-indigo-500 text-indigo-400'
-                                : 'bg-neutral-900 border-neutral-800 text-neutral-500 hover:text-indigo-400'
-                                }`}
-                            title={t('chat.tooltips.set_price_link', 'Invia Link a Pagamento')}
-                        >
-                            <LinkIcon className="w-4 h-4" />
-                            <span className="text-[9px] uppercase font-bold text-center leading-tight">Link</span>
-                        </button>
+                        {currentUser.isVip && (
+                            <button
+                                onClick={() => setIsEphemeralMode(!isEphemeralMode)}
+                                className={`flex flex-col items-center justify-center min-w-[70px] p-3 border transition-all gap-1 rounded-xl ${isEphemeralMode
+                                    ? 'bg-crimson-900/40 border-crimson-500 text-crimson-500'
+                                    : 'bg-neutral-900 border-neutral-800 text-neutral-500 hover:text-neutral-300'
+                                    }`}
+                                title={isEphemeralMode ? t('chat.tooltips.ephemeral_active') : t('chat.tooltips.ephemeral_inactive')}
+                            >
+                                {isEphemeralMode ? <Zap className="w-4 h-4 fill-current" /> : <ZapOff className="w-4 h-4" />}
+                                <span className="text-[9px] uppercase font-bold text-center leading-tight">{t('chat.ephemeral').substring(0, 4)}<br />{t('chat.ephemeral').substring(4)}</span>
+                            </button>
+                        )}
                     </div>
 
-                    {/* Price Input field when active */}
-                    {isPriceMode && (
-                        <div className="flex flex-col gap-3 mb-3 p-4 bg-indigo-950/30 border border-indigo-900/50 rounded-2xl animate-fade-in shadow-2xl">
-                            <div className="flex items-center justify-between">
-                                <span className="text-sm font-bold text-indigo-400 uppercase tracking-widest flex items-center gap-2">
-                                    <Coins className="w-4 h-4" /> {t('chat.set_price_label')}
-                                </span>
-                                <button onClick={() => { setIsPriceMode(false); setPriceValue(0); setPendingPaidContent(null); }} className="text-neutral-500 hover:text-white"><X className="w-5 h-5" /></button>
-                            </div>
 
-                            {pendingPaidContent?.type === 'LINK' && !pendingPaidContent.url && (
-                                <input
-                                    type="text"
-                                    placeholder="Incolla il link qui..."
-                                    className="bg-black border border-indigo-900 text-white px-4 py-3 rounded-xl outline-none focus:border-indigo-500 transition-all font-sans text-sm"
-                                    onChange={(e) => setPendingPaidContent({ ...pendingPaidContent, url: e.target.value })}
-                                />
-                            )}
 
-                            <div className="flex items-center gap-4">
-                                <input
-                                    type="number"
-                                    value={priceValue}
-                                    onChange={(e) => setPriceValue(parseInt(e.target.value) || 0)}
-                                    className="bg-black border border-indigo-900 text-white px-4 py-3 rounded-xl w-24 text-center text-xl font-bold outline-none focus:border-indigo-500 transition-colors shadow-inner"
-                                    min="1"
-                                />
-                                <div className="flex-1">
-                                    <p className="text-xs text-neutral-300 font-bold mb-1">{t('chat.price_hint')}</p>
-                                    <p className="text-[10px] text-neutral-500 italic">I crediti verranno accreditati al momento dello sblocco.</p>
-                                </div>
-                                <button
-                                    onClick={handleConfirmPaidContent}
-                                    disabled={uploadingImage || (pendingPaidContent?.type === 'LINK' && !pendingPaidContent?.url) || priceValue <= 0}
-                                    className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-black px-6 py-3 rounded-xl transition-all shadow-lg flex items-center gap-2"
-                                >
-                                    {uploadingImage ? <Loader className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                                    {t('chat.send_paid_btn', 'Invia')}
-                                </button>
-                            </div>
-                        </div>
-                    )}
 
-                    {/* Paid Selection Menu (Simplified) */}
-                    {showActions && (
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 animate-fade-in border-b border-neutral-900 pb-3">
-                            <button
-                                onClick={() => { setPendingPaidContent({ type: 'LINK' }); setIsPriceMode(true); setShowActions(false); }}
-                                className="flex flex-col items-center justify-center p-3 bg-indigo-900/10 border border-indigo-900/30 rounded-xl hover:bg-indigo-900/20 text-indigo-400 gap-1 transition-all"
-                            >
-                                <LinkIcon className="w-5 h-5" />
-                                <span className="text-[9px] font-bold uppercase">Incolla Link</span>
-                            </button>
-                        </div>
-                    )}
 
                     {/* Main Input Row */}
                     <div className="flex gap-2 items-center">
