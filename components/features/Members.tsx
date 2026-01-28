@@ -592,8 +592,8 @@ const Members: React.FC<MembersProps> = ({ currentUser, onOpenChat, onUpdateUser
                             </div>
                         </div>
 
-                        <div className="pt-20 px-10 pb-10 flex-1 overflow-y-auto custom-scrollbar">
-                            <div className="flex flex-col lg:flex-row justify-between items-start mb-12 gap-8 sticky top-0 bg-neutral-950/80 backdrop-blur-md pt-2 pb-6 z-10 border-b border-neutral-900/50">
+                        <div className="pt-20 px-6 md:px-10 pb-10 flex-1 overflow-y-auto custom-scrollbar">
+                            <div className="flex flex-col lg:flex-row justify-between items-start mb-12 gap-8 pt-2 pb-6 border-b border-neutral-900/50">
                                 <div>
                                     <h2 className="text-4xl font-serif text-white tracking-tight flex items-center gap-4">
                                         {selectedUser.name}
