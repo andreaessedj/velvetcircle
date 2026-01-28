@@ -95,8 +95,11 @@ function extractAmount(payload) {
 // {"f4ec730844":500,"abcd123456":1200}
 function parseCreditsPackMap() {
   const fallback = {
-    "f4ec730844": 10,
-    "fa098d3767": 50
+    "f4ec730844": 10, // 10€
+    "5e4bbc60c9": 24, // 20€
+    "01e0915950": 36, // 30€
+    "24bc25a629": 50, // 40€
+    "fa098d3767": 65  // 50€
   };
 
   const raw = process.env.CREDITS_PACK_MAP;
@@ -125,7 +128,7 @@ export default async function handler(req, res) {
       .split(",")
       .map((s) => s.trim().toLowerCase())
       .filter(Boolean);
-      
+
     const VIP_ITEM_CODE = process.env.KOFI_VIP_ITEM_CODE || "";
     const CREDITS_PER_EUR = parseInt(process.env.CREDITS_PER_EUR || "10", 10); // Changed default to 10 as it's more common for 1 EUR = 10 Credits
     const VIP_DAYS = parseInt(process.env.VIP_DAYS || "30", 10);
@@ -141,7 +144,7 @@ export default async function handler(req, res) {
 
     console.log("--- KO-FI WEBHOOK START ---");
     console.log("Content-Type:", req.headers["content-type"]);
-    
+
     const payload = parseKofiPayload(req, rawBody);
     if (!payload) {
       console.error("Bad Ko-fi payload parse. Raw body preview:", rawBody.substring(0, 200));
@@ -151,7 +154,7 @@ export default async function handler(req, res) {
     console.log("Payload Type:", payload.type);
     console.log("Email:", payload.email);
     console.log("Amount:", extractAmount(payload));
-    
+
     const itemCodes = getShopItemCodes(payload).map(c => c.trim().toLowerCase());
     console.log("Shop Item Codes in Payload:", itemCodes);
     console.log("Configured Credit Codes:", CREDIT_ITEM_CODES);
@@ -189,7 +192,7 @@ export default async function handler(req, res) {
 
     // --- CREDITI ---
     const creditsPackMap = parseCreditsPackMap();
-    
+
     // Verifichiamo se l'item code corrisponde ESPLICITAMENTE a un pacchetto crediti
     let creditsToAdd = 0;
     let foundCreditCode = null;
@@ -211,7 +214,7 @@ export default async function handler(req, res) {
 
     if (isCreditsPurchase) {
       console.log(`Credit purchase detected for code: ${foundCreditCode}`);
-      
+
       // Determina i crediti da aggiungere
       if (creditsPackMap[foundCreditCode] != null) {
         creditsToAdd = Number(creditsPackMap[foundCreditCode]);
