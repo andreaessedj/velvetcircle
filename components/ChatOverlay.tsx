@@ -28,6 +28,8 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
     const chatEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [showActions, setShowActions] = useState(false);
+    const [isPriceMode, setIsPriceMode] = useState(false);
+    const [priceValue, setPriceValue] = useState(0);
     const isInitialLoad = useRef(true);
 
     // Fetch and Poll messages
@@ -80,7 +82,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
         }
     }, [messages, currentUser.id]);
 
-    const handleSendMessage = async (text = newMessage, isBlackRose = false, imageUrl?: string, isEphemeral = isEphemeralMode) => {
+    const handleSendMessage = async (text = newMessage, isBlackRose = false, imageUrl?: string, isEphemeral = isEphemeralMode, price = isPriceMode ? priceValue : 0) => {
         if (!text.trim() && !imageUrl) return;
         try {
             // Optimistic update
@@ -93,14 +95,18 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                 created_at: new Date().toISOString(),
                 is_read: false,
                 is_black_rose: isBlackRose,
-                is_ephemeral: isEphemeral
+                is_ephemeral: isEphemeral,
+                price: price,
+                unlocked_by: []
             };
             setMessages(prev => [...prev, tempMsg]);
 
             if (text === newMessage) setNewMessage(''); // Clear input if it's the text field
             setIsEphemeralMode(false);
+            setIsPriceMode(false);
+            setPriceValue(0);
 
-            await api.sendPrivateMessage(currentUser.id, targetUser.id, text, currentUser.name, isBlackRose, imageUrl, isEphemeral);
+            await api.sendPrivateMessage(currentUser.id, targetUser.id, text, currentUser.name, isBlackRose, imageUrl, isEphemeral, price);
 
             // Refetch to get real ID and server timestamp
             const msgs = await api.getPrivateMessages(currentUser.id, targetUser.id);
@@ -175,9 +181,31 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
         }
     };
 
+    const handleUnlockMessage = async (msg: PrivateMessage) => {
+        if (!msg.price || msg.price <= 0) return;
+        if (currentUser.credits < msg.price && currentUser.role !== 'ADMIN') {
+            alert(t('chat.insufficient_credits'));
+            return;
+        }
+
+        if (!confirm(t('chat.unlock_confirm', { price: msg.price }))) return;
+
+        try {
+            await api.buyChatMessage(currentUser.id, msg.id, msg.price, msg.sender_id);
+            // Refetch messages
+            const msgs = await api.getPrivateMessages(currentUser.id, targetUser.id);
+            setMessages(msgs);
+        } catch (e: any) {
+            console.error(e);
+            alert(e.message || t('chat.unlock_error'));
+        }
+    };
+
     // Renderizza il contenuto interno del messaggio (Body)
     const renderMessageBody = (msg: PrivateMessage) => {
-        const { content, is_black_rose: isBlackRose, image_url: imageUrl, is_ephemeral: isEphemeral, ephemeral_reveals: ephemeralReveals } = msg;
+        const { content, is_black_rose: isBlackRose, image_url: imageUrl, is_ephemeral: isEphemeral, ephemeral_reveals: ephemeralReveals, price, unlocked_by: unlockedBy, sender_id: senderId } = msg;
+
+        const isLocked = (price || 0) > 0 && senderId !== currentUser.id && !(unlockedBy || []).includes(currentUser.id) && currentUser.role !== 'ADMIN';
 
         // 1. Velvet Cards
         if (content.startsWith(':::VELVET_CARD|')) {
@@ -250,7 +278,20 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                     </div>
                 )}
                 {imageUrl && (
-                    isEphemeral ? (
+                    isLocked ? (
+                        <div className="mb-2 relative rounded-lg overflow-hidden border border-neutral-700 aspect-video bg-neutral-900 group">
+                            <img src={imageUrl} className="w-full h-full object-cover blur-2xl opacity-50 grayscale" alt="Locked content" />
+                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm transition-all group-hover:bg-black/20">
+                                <Plus className="w-8 h-8 text-gold-500 mb-2 drop-shadow-lg" />
+                                <button
+                                    onClick={() => handleUnlockMessage(msg)}
+                                    className="bg-gold-600 hover:bg-gold-500 text-black font-black px-4 py-2 rounded-full text-xs uppercase tracking-widest shadow-xl transform active:scale-95 transition-all"
+                                >
+                                    {t('chat.unlock_for', { price })}
+                                </button>
+                            </div>
+                        </div>
+                    ) : isEphemeral ? (
                         <div className="mb-2 min-w-[240px]">
                             <EphemeralMoment
                                 imageUrl={imageUrl}
@@ -268,7 +309,13 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                         </div>
                     )
                 )}
-                <p className="text-sm font-sans whitespace-pre-wrap">{content}</p>
+                {isLocked ? (
+                    <div className="p-3 bg-neutral-950/50 border border-dashed border-neutral-800 rounded-lg text-neutral-500 text-[10px] uppercase tracking-tighter italic">
+                        {t('chat.locked_content_desc')}
+                    </div>
+                ) : (
+                    <p className="text-sm font-sans whitespace-pre-wrap">{content}</p>
+                )}
             </div>
         );
     };
@@ -466,7 +513,35 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                                 <span className="text-[9px] uppercase font-bold text-center leading-tight">{t('chat.ephemeral').substring(0, 4)}<br />{t('chat.ephemeral').substring(4)}</span>
                             </button>
                         )}
+
+                        <button
+                            onClick={() => setIsPriceMode(!isPriceMode)}
+                            className={`flex flex-col items-center justify-center min-w-[70px] p-3 border transition-all gap-1 rounded-xl ${isPriceMode
+                                ? 'bg-indigo-900/40 border-indigo-500 text-indigo-400'
+                                : 'bg-neutral-900 border-neutral-800 text-neutral-500 hover:text-indigo-400'
+                                }`}
+                            title={t('chat.tooltips.set_price')}
+                        >
+                            <Coins className="w-4 h-4" />
+                            <span className="text-[9px] uppercase font-bold text-center leading-tight">Price</span>
+                        </button>
                     </div>
+
+                    {/* Price Input field when active */}
+                    {isPriceMode && (
+                        <div className="flex items-center gap-4 mb-3 p-3 bg-indigo-950/20 border border-indigo-900/50 rounded-xl animate-fade-in">
+                            <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest">{t('chat.set_price_label')}:</span>
+                            <input
+                                type="number"
+                                value={priceValue}
+                                onChange={(e) => setPriceValue(parseInt(e.target.value) || 0)}
+                                className="bg-black border border-indigo-900 text-white px-3 py-1 rounded w-20 text-center outline-none focus:border-indigo-500 transition-colors"
+                                min="0"
+                            />
+                            <span className="text-[10px] text-neutral-400 italic flex-1">{t('chat.price_hint')}</span>
+                            <button onClick={() => { setIsPriceMode(false); setPriceValue(0); }} className="text-neutral-500 hover:text-white"><X className="w-4 h-4" /></button>
+                        </div>
+                    )}
 
                     {/* Main Input Row */}
                     <div className="flex gap-2 items-center">
