@@ -265,8 +265,8 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout, onUpdateUs
                       <item.icon className="w-4 h-4" />
                       <span className="text-sm font-serif">{item.label}</span>
                     </div>
-                    {item.id === 'MESSAGES' && (
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${unreadCount > 0 ? 'bg-crimson-600 text-white animate-pulse' : 'bg-neutral-800 text-neutral-500'}`}>
+                    {item.id === 'MESSAGES' && unreadCount > 0 && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-crimson-600 text-white animate-pulse">
                         {unreadCount}
                       </span>
                     )}
@@ -392,8 +392,8 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout, onUpdateUs
                 >
                   <item.icon className="w-5 h-5" />
                   <span className="text-xs font-serif text-center">{item.label}</span>
-                  {item.id === 'MESSAGES' && (
-                    <span className={`absolute top-1 right-1 text-[9px] font-black px-2 py-0.5 rounded-full shadow-lg ${unreadCount > 0 ? 'bg-crimson-600 text-white animate-pulse' : 'bg-neutral-800 text-neutral-600'}`}>
+                  {item.id === 'MESSAGES' && unreadCount > 0 && (
+                    <span className="absolute top-1 right-1 text-[9px] font-black px-2 py-0.5 rounded-full shadow-lg bg-crimson-600 text-white animate-pulse">
                       {unreadCount}
                     </span>
                   )}
