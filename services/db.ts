@@ -1208,6 +1208,26 @@ export const api = {
       }));
   },
 
+  getUnreadMessageCount: async (userId: string): Promise<number> => {
+    const cutoff = new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString();
+    const { count, error } = await supabase
+      .from("private_messages")
+      .select("*", { count: 'exact', head: true })
+      .eq("receiver_id", userId)
+      .eq("is_read", false)
+      .gt("created_at", cutoff);
+    return error ? 0 : count || 0;
+  },
+
+  markMessagesAsRead: async (myId: string, otherId: string): Promise<void> => {
+    await supabase
+      .from("private_messages")
+      .update({ is_read: true })
+      .eq("receiver_id", myId)
+      .eq("sender_id", otherId)
+      .eq("is_read", false);
+  },
+
   sendPrivateMessage: async (
     senderId: string,
     receiverId: string,
@@ -1253,14 +1273,35 @@ export const api = {
   },
 
   getInbox: async (): Promise<InboxConversation[]> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
     const { data: convs, error } = await supabase.rpc("get_my_conversations");
     if (error || !convs) return [];
+
     const partnerIds = convs.map((c: any) => c.partner_id);
+
+    // Fetch partners profiles
     const { data: profiles } = await supabase
       .from("profiles")
       .select("id, name, avatar, role, is_verified, is_vip, is_banned")
       .in("id", partnerIds)
       .eq("is_banned", false);
+
+    // Fetch unread counts for these partners
+    const cutoff = new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString();
+    const { data: unreadData } = await supabase
+      .from("private_messages")
+      .select("sender_id")
+      .eq("receiver_id", user.id)
+      .eq("is_read", false)
+      .gt("created_at", cutoff);
+
+    const unreadMap = (unreadData || []).reduce((acc: any, curr: any) => {
+      acc[curr.sender_id] = (acc[curr.sender_id] || 0) + 1;
+      return acc;
+    }, {});
+
     return convs
       .map((c: any) => {
         const profile = profiles?.find((p) => p.id === c.partner_id);
@@ -1275,6 +1316,7 @@ export const api = {
             isVip: profile.is_vip
           },
           last_message_at: c.last_message_at,
+          unread_count: unreadMap[profile.id] || 0,
           has_black_rose: false
         };
       })
