@@ -30,6 +30,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
     const [showActions, setShowActions] = useState(false);
     const [isPriceMode, setIsPriceMode] = useState(false);
     const [priceValue, setPriceValue] = useState(0);
+    const [pendingPaidContent, setPendingPaidContent] = useState<{ type: 'PHOTO' | 'VIDEO' | 'LINK', data?: any, url?: string } | null>(null);
     const isInitialLoad = useRef(true);
 
     // Fetch and Poll messages
@@ -117,21 +118,54 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
         }
     };
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isPaid = false) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        if (isPaid) {
+            setPendingPaidContent({ type: file.type.startsWith('video/') ? 'VIDEO' : 'PHOTO', data: file });
+            setIsPriceMode(true);
+            setShowActions(false);
+            return;
+        }
+
         setUploadingImage(true);
         try {
-            // Use same storage as vault for now
             const uploaded = await api.uploadVaultPhoto(file, currentUser.id, 0);
             await handleSendMessage("(Immagine)", false, uploaded.url);
         } catch (err) {
-            console.error("Image upload failed:", err);
-            alert(t('chat.image_upload_error'));
+            console.error("Upload failed:", err);
+            alert(t('chat.upload_error'));
         } finally {
             setUploadingImage(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+
+    const handleConfirmPaidContent = async () => {
+        if (!pendingPaidContent) return;
+        setUploadingImage(true);
+        try {
+            let finalUrl = pendingPaidContent.url;
+            let finalContent = "(Contenuto a pagamento)";
+
+            if (pendingPaidContent.type === 'PHOTO' || pendingPaidContent.type === 'VIDEO') {
+                const uploaded = await api.uploadVaultPhoto(pendingPaidContent.data, currentUser.id, priceValue);
+                finalUrl = uploaded.url;
+                finalContent = pendingPaidContent.type === 'VIDEO' ? "(Video a pagamento)" : "(Foto a pagamento)";
+            } else if (pendingPaidContent.type === 'LINK') {
+                finalContent = `Guarda qui: ${pendingPaidContent.url}`;
+            }
+
+            await handleSendMessage(finalContent, false, finalUrl, false, priceValue);
+            setPendingPaidContent(null);
+            setIsPriceMode(false);
+            setPriceValue(0);
+        } catch (e) {
+            console.error(e);
+            alert("Errore durante l'invio del contenuto a pagamento.");
+        } finally {
+            setUploadingImage(false);
         }
     };
 
@@ -529,17 +563,71 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
 
                     {/* Price Input field when active */}
                     {isPriceMode && (
-                        <div className="flex items-center gap-4 mb-3 p-3 bg-indigo-950/20 border border-indigo-900/50 rounded-xl animate-fade-in">
-                            <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest">{t('chat.set_price_label')}:</span>
+                        <div className="flex flex-col gap-3 mb-3 p-4 bg-indigo-950/30 border border-indigo-900/50 rounded-2xl animate-fade-in shadow-2xl">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-bold text-indigo-400 uppercase tracking-widest flex items-center gap-2">
+                                    <Coins className="w-4 h-4" /> {t('chat.set_price_label')}
+                                </span>
+                                <button onClick={() => { setIsPriceMode(false); setPriceValue(0); setPendingPaidContent(null); }} className="text-neutral-500 hover:text-white"><X className="w-5 h-5" /></button>
+                            </div>
+
+                            {pendingPaidContent?.type === 'LINK' && !pendingPaidContent.url && (
+                                <input
+                                    type="text"
+                                    placeholder="Incolla il link qui..."
+                                    className="bg-black border border-indigo-900 text-white px-4 py-3 rounded-xl outline-none focus:border-indigo-500 transition-all font-sans text-sm"
+                                    onChange={(e) => setPendingPaidContent({ ...pendingPaidContent, url: e.target.value })}
+                                />
+                            )}
+
+                            <div className="flex items-center gap-4">
+                                <input
+                                    type="number"
+                                    value={priceValue}
+                                    onChange={(e) => setPriceValue(parseInt(e.target.value) || 0)}
+                                    className="bg-black border border-indigo-900 text-white px-4 py-3 rounded-xl w-24 text-center text-xl font-bold outline-none focus:border-indigo-500 transition-colors shadow-inner"
+                                    min="1"
+                                />
+                                <div className="flex-1">
+                                    <p className="text-xs text-neutral-300 font-bold mb-1">{t('chat.price_hint')}</p>
+                                    <p className="text-[10px] text-neutral-500 italic">I crediti verranno accreditati al momento dello sblocco.</p>
+                                </div>
+                                <button
+                                    onClick={handleConfirmPaidContent}
+                                    disabled={uploadingImage || (pendingPaidContent?.type === 'LINK' && !pendingPaidContent?.url) || priceValue <= 0}
+                                    className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-black px-6 py-3 rounded-xl transition-all shadow-lg flex items-center gap-2"
+                                >
+                                    {uploadingImage ? <Loader className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                    {t('chat.send_paid_btn', 'Invia')}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Paid Selection Menu */}
+                    {showActions && (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 animate-fade-in border-b border-neutral-900 pb-3">
                             <input
-                                type="number"
-                                value={priceValue}
-                                onChange={(e) => setPriceValue(parseInt(e.target.value) || 0)}
-                                className="bg-black border border-indigo-900 text-white px-3 py-1 rounded w-20 text-center outline-none focus:border-indigo-500 transition-colors"
-                                min="0"
+                                type="file"
+                                id="paid-file-input"
+                                className="hidden"
+                                accept="image/*,video/*"
+                                onChange={(e) => handleImageUpload(e, true)}
                             />
-                            <span className="text-[10px] text-neutral-400 italic flex-1">{t('chat.price_hint')}</span>
-                            <button onClick={() => { setIsPriceMode(false); setPriceValue(0); }} className="text-neutral-500 hover:text-white"><X className="w-4 h-4" /></button>
+                            <button
+                                onClick={() => document.getElementById('paid-file-input')?.click()}
+                                className="flex flex-col items-center justify-center p-3 bg-indigo-900/10 border border-indigo-900/30 rounded-xl hover:bg-indigo-900/20 text-indigo-400 gap-1 transition-all"
+                            >
+                                <ImageIcon className="w-5 h-5" />
+                                <span className="text-[9px] font-bold uppercase">Foto / Video</span>
+                            </button>
+                            <button
+                                onClick={() => { setPendingPaidContent({ type: 'LINK' }); setIsPriceMode(true); setShowActions(false); }}
+                                className="flex flex-col items-center justify-center p-3 bg-indigo-900/10 border border-indigo-900/30 rounded-xl hover:bg-indigo-900/20 text-indigo-400 gap-1 transition-all"
+                            >
+                                <Plus className="w-5 h-5" />
+                                <span className="text-[9px] font-bold uppercase">Incolla Link</span>
+                            </button>
                         </div>
                     )}
 
