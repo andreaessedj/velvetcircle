@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User, PrivateMessage } from '../types';
 import { api } from '../services/db';
-import { X, Clock, Send, Loader, Gamepad2, Sparkles, Flame, Zap, Flower, Coins, Image as ImageIcon, ZapOff, Plus } from 'lucide-react';
+import { X, Clock, Send, Loader, Gamepad2, Sparkles, Flame, Zap, Flower, Coins, Image as ImageIcon, ZapOff, Plus, Link as LinkIcon } from 'lucide-react';
 import EphemeralMoment from './features/EphemeralMoment';
 import { useTranslation } from 'react-i18next';
 
@@ -143,27 +143,17 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
     };
 
     const handleConfirmPaidContent = async () => {
-        if (!pendingPaidContent) return;
+        if (!pendingPaidContent || pendingPaidContent.type !== 'LINK' || !pendingPaidContent.url) return;
         setUploadingImage(true);
         try {
-            let finalUrl = pendingPaidContent.url;
-            let finalContent = "(Contenuto a pagamento)";
-
-            if (pendingPaidContent.type === 'PHOTO' || pendingPaidContent.type === 'VIDEO') {
-                const uploaded = await api.uploadVaultPhoto(pendingPaidContent.data, currentUser.id, priceValue);
-                finalUrl = uploaded.url;
-                finalContent = pendingPaidContent.type === 'VIDEO' ? "(Video a pagamento)" : "(Foto a pagamento)";
-            } else if (pendingPaidContent.type === 'LINK') {
-                finalContent = `Guarda qui: ${pendingPaidContent.url}`;
-            }
-
-            await handleSendMessage(finalContent, false, finalUrl, false, priceValue);
+            const finalContent = `Guarda qui: ${pendingPaidContent.url}`;
+            await handleSendMessage(finalContent, false, undefined, false, priceValue);
             setPendingPaidContent(null);
             setIsPriceMode(false);
             setPriceValue(0);
         } catch (e) {
             console.error(e);
-            alert("Errore durante l'invio del contenuto a pagamento.");
+            alert("Errore durante l'invio del link a pagamento.");
         } finally {
             setUploadingImage(false);
         }
@@ -534,30 +524,16 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                             <span className="text-[9px] uppercase font-bold text-center leading-tight">Black<br />Rose</span>
                         </button>
 
-                        {currentUser.isVip && (
-                            <button
-                                onClick={() => setIsEphemeralMode(!isEphemeralMode)}
-                                className={`flex flex-col items-center justify-center min-w-[70px] p-3 border transition-all gap-1 rounded-xl ${isEphemeralMode
-                                    ? 'bg-crimson-900/40 border-crimson-500 text-crimson-500'
-                                    : 'bg-neutral-900 border-neutral-800 text-neutral-500 hover:text-neutral-300'
-                                    }`}
-                                title={isEphemeralMode ? t('chat.tooltips.ephemeral_active') : t('chat.tooltips.ephemeral_inactive')}
-                            >
-                                {isEphemeralMode ? <Zap className="w-4 h-4 fill-current" /> : <ZapOff className="w-4 h-4" />}
-                                <span className="text-[9px] uppercase font-bold text-center leading-tight">{t('chat.ephemeral').substring(0, 4)}<br />{t('chat.ephemeral').substring(4)}</span>
-                            </button>
-                        )}
-
                         <button
-                            onClick={() => setIsPriceMode(!isPriceMode)}
-                            className={`flex flex-col items-center justify-center min-w-[70px] p-3 border transition-all gap-1 rounded-xl ${isPriceMode
+                            onClick={() => { setPendingPaidContent({ type: 'LINK' }); setIsPriceMode(true); setShowActions(false); }}
+                            className={`flex flex-col items-center justify-center min-w-[70px] p-3 border transition-all gap-1 rounded-xl ${isPriceMode && pendingPaidContent?.type === 'LINK'
                                 ? 'bg-indigo-900/40 border-indigo-500 text-indigo-400'
                                 : 'bg-neutral-900 border-neutral-800 text-neutral-500 hover:text-indigo-400'
                                 }`}
-                            title={t('chat.tooltips.set_price')}
+                            title={t('chat.tooltips.set_price_link', 'Invia Link a Pagamento')}
                         >
-                            <Coins className="w-4 h-4" />
-                            <span className="text-[9px] uppercase font-bold text-center leading-tight">Price</span>
+                            <LinkIcon className="w-4 h-4" />
+                            <span className="text-[9px] uppercase font-bold text-center leading-tight">Link</span>
                         </button>
                     </div>
 
@@ -604,28 +580,14 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                         </div>
                     )}
 
-                    {/* Paid Selection Menu */}
+                    {/* Paid Selection Menu (Simplified) */}
                     {showActions && (
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 animate-fade-in border-b border-neutral-900 pb-3">
-                            <input
-                                type="file"
-                                id="paid-file-input"
-                                className="hidden"
-                                accept="image/*,video/*"
-                                onChange={(e) => handleImageUpload(e, true)}
-                            />
-                            <button
-                                onClick={() => document.getElementById('paid-file-input')?.click()}
-                                className="flex flex-col items-center justify-center p-3 bg-indigo-900/10 border border-indigo-900/30 rounded-xl hover:bg-indigo-900/20 text-indigo-400 gap-1 transition-all"
-                            >
-                                <ImageIcon className="w-5 h-5" />
-                                <span className="text-[9px] font-bold uppercase">Foto / Video</span>
-                            </button>
                             <button
                                 onClick={() => { setPendingPaidContent({ type: 'LINK' }); setIsPriceMode(true); setShowActions(false); }}
                                 className="flex flex-col items-center justify-center p-3 bg-indigo-900/10 border border-indigo-900/30 rounded-xl hover:bg-indigo-900/20 text-indigo-400 gap-1 transition-all"
                             >
-                                <Plus className="w-5 h-5" />
+                                <LinkIcon className="w-5 h-5" />
                                 <span className="text-[9px] font-bold uppercase">Incolla Link</span>
                             </button>
                         </div>
