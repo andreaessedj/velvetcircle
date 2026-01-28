@@ -98,6 +98,11 @@ const Inbox: React.FC<InboxProps> = ({ currentUser, onOpenChat }) => {
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                                     <h3 className={`text-xl font-serif flex items-center gap-3 transition-colors ${expired ? 'text-neutral-600' : isPriority ? 'text-gold-400' : 'text-neutral-100 group-hover:text-white'}`}>
                                         {conv.partner.name}
+                                        {conv.unread_count > 0 && (
+                                            <span className="bg-crimson-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse shadow-lg">
+                                                {conv.unread_count}
+                                            </span>
+                                        )}
                                         {isPriority && <span className="text-[8px] bg-gold-600 text-black px-2 py-0.5 rounded-full font-black tracking-widest shadow-lg">BLACK ROSE</span>}
                                     </h3>
                                     <span className={`text-[9px] uppercase font-black tracking-[0.2em] border px-3 py-1 rounded-full transition-colors ${expired ? 'text-neutral-700 border-neutral-900' : 'text-neutral-500 border-neutral-800 group-hover:text-neutral-300 group-hover:border-neutral-700'}`}>
