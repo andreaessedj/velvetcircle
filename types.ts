@@ -125,6 +125,7 @@ export interface InboxConversation {
   };
   last_message_at: string;
   has_black_rose?: boolean;
+  unread_count?: number;
 }
 
 export interface Confession {
