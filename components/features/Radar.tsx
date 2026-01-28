@@ -11,11 +11,6 @@ interface RadarProps {
     onOpenChat: (user: { id: string, name: string, avatar: string }) => void;
 }
 
-// Estendiamo il tipo localmente per gestire il flag isTest
-interface ExtendedRadarSignal extends RadarSignal {
-    isTest?: boolean;
-}
-
 // Coordinate Città Italiane per garantire terraferma
 const ITALIAN_CITIES = [
     { name: "Milano", lat: 45.4642, lng: 9.1900 },
@@ -37,10 +32,6 @@ const ITALIAN_CITIES = [
     { name: "Cagliari", lat: 39.2238, lng: 9.1217 }
 ];
 
-// Nomi casuali per i bot
-const BOT_NAMES = ["Alessandro", "Giulia & Marco", "Sofia", "Lorenzo", "SweetCouple", "DarkPassion", "Luca", "Martina", "RedVelvet", "NightOwl", "CoupleFun", "SoloTraveler", "MisteryMan", "LadyRed"];
-const BOT_MESSAGES = ["In cerca di relax", "Disponibili per aperitivo", "Curiosi...", "Solo guardare", "Serata tranquilla", "Qualcuno in zona?", "Visitando la città"];
-
 // Haversine formula to calculate distance in km
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371; // Earth radius in km
@@ -55,7 +46,7 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
 };
 
 const RadarView: React.FC<RadarProps> = ({ currentUser, onOpenChat }) => {
-    const [signals, setSignals] = useState<ExtendedRadarSignal[]>([]);
+    const [signals, setSignals] = useState<RadarSignal[]>([]);
     const [myLocation, setMyLocation] = useState<{ lat: number, lng: number } | null>(null);
     const [broadcastMessage, setBroadcastMessage] = useState("Disponibili per un drink");
     const [loading, setLoading] = useState(false);
@@ -82,38 +73,6 @@ const RadarView: React.FC<RadarProps> = ({ currentUser, onOpenChat }) => {
         checkinIdRef.current = activeCheckinId;
     }, [activeCheckinId]);
 
-    // Funzione per generare i bot di test
-    const generateTestSignals = (): ExtendedRadarSignal[] => {
-        const activeBotsCount = 50; // Per simulare 300 check-in al giorno (durata 4h), ne servono circa 50 attivi simultaneamente.
-        const bots: ExtendedRadarSignal[] = [];
-
-        for (let i = 0; i < activeBotsCount; i++) {
-            const city = ITALIAN_CITIES[Math.floor(Math.random() * ITALIAN_CITIES.length)];
-            // Aggiungi un offset casuale (jitter) entro circa 3-5km dal centro città per evitare il mare e sovrapposizioni
-            const latOffset = (Math.random() - 0.5) * 0.05;
-            const lngOffset = (Math.random() - 0.5) * 0.05;
-
-            const role = Math.random() > 0.6 ? 'COUPLE' : (Math.random() > 0.5 ? 'SINGLE_MALE' : 'SINGLE_FEMALE');
-
-            bots.push({
-                id: `test-signal-${i}`,
-                user_id: `test-user-${i}`,
-                latitude: city.lat + latOffset,
-                longitude: city.lng + lngOffset,
-                message: BOT_MESSAGES[Math.floor(Math.random() * BOT_MESSAGES.length)],
-                expires_at: new Date(Date.now() + Math.random() * 4 * 60 * 60 * 1000).toISOString(), // Scadenza random entro 4h
-                profile: {
-                    name: BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)],
-                    avatar: `https://ui-avatars.com/api/?name=${role.charAt(0)}&background=222&color=666`,
-                    role: role as any,
-                    isVip: false
-                },
-                isTest: true
-            });
-        }
-        return bots;
-    };
-
     const refreshSignals = async (isBackground = false) => {
         if (!isBackground) setLoading(true);
         try {
@@ -124,10 +83,8 @@ const RadarView: React.FC<RadarProps> = ({ currentUser, onOpenChat }) => {
                 ? data.filter(s => s.user_id !== currentUser.id)
                 : data;
 
-            const testData = generateTestSignals();
-
-            // Unione dati reali + test
-            setSignals([...filteredRealData, ...testData]);
+            // Unione dati reali
+            setSignals(filteredRealData);
 
             // LOGICA DI SINC:
             // Se non ho un ID locale, controllo se il server ne ha uno per me (recupero sessione/refresh pagina)
@@ -259,7 +216,7 @@ const RadarView: React.FC<RadarProps> = ({ currentUser, onOpenChat }) => {
                 const customIcon = L.divIcon({
                     className: 'custom-div-icon',
                     html: `
-                    <div class="marker-pin ${isMe ? 'border-green-500 shadow-[0_0_10px_#22c55e]' : ''} ${signal.isTest ? 'opacity-70 grayscale' : ''}">
+                    <div class="marker-pin ${isMe ? 'border-green-500 shadow-[0_0_10px_#22c55e]' : ''}">
                         <img src="${signal.profile.avatar}" />
                     </div>
                 `,
@@ -268,12 +225,7 @@ const RadarView: React.FC<RadarProps> = ({ currentUser, onOpenChat }) => {
                     popupAnchor: [0, -20]
                 });
 
-                const actionButtons = signal.isTest
-                    ? `<div class="w-full bg-neutral-800 text-neutral-500 text-[9px] uppercase font-bold py-2 text-center border border-neutral-700 flex items-center justify-center gap-1">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path><path d="M12 6v6l4 2"></path></svg>
-                      Simulazione Test
-                   </div>`
-                    : `<div class="flex gap-2">
+                const actionButtons = `<div class="flex gap-2">
                         <a href="https://www.google.com/maps/dir/?api=1&destination=${signal.latitude},${signal.longitude}" 
                            target="_blank" 
                            class="flex-1 inline-flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white text-[10px] uppercase font-bold px-3 py-2 border border-neutral-700 transition-colors hover:border-crimson-800">
@@ -289,7 +241,7 @@ const RadarView: React.FC<RadarProps> = ({ currentUser, onOpenChat }) => {
                 const popupContent = `
                 <div class="min-w-[180px] text-center font-sans p-2">
                     <div class="mb-3">
-                        <strong class="block text-base font-serif uppercase ${signal.isTest ? 'text-neutral-500' : 'text-crimson-600'}">${signal.profile.name}</strong>
+                        <strong class="block text-base font-serif uppercase text-crimson-600">${signal.profile.name}</strong>
                         <span class="text-[10px] uppercase tracking-widest text-neutral-400 block mb-2">${signal.profile.role.replace('_', ' ')}</span>
                         <p class="text-sm italic text-neutral-300 mb-3">"${signal.message}"</p>
                     </div>
@@ -372,7 +324,7 @@ const RadarView: React.FC<RadarProps> = ({ currentUser, onOpenChat }) => {
                     currentId = newId;
 
                     // OPTIMISTIC UPDATE
-                    const myOptimisticSignal: ExtendedRadarSignal = {
+                    const myOptimisticSignal: RadarSignal = {
                         id: newId,
                         user_id: currentUser.id,
                         latitude: latitude,
@@ -607,17 +559,16 @@ const RadarView: React.FC<RadarProps> = ({ currentUser, onOpenChat }) => {
                                 const isMe = signal.user_id === currentUser.id;
 
                                 return (
-                                    <div key={signal.id} className={`p-4 flex items-center gap-4 border transition-colors ${isMe ? 'bg-green-900/10 border-green-900/30' : signal.isTest ? 'bg-neutral-900 border-neutral-800 opacity-60' : 'bg-black border-neutral-800 hover:border-neutral-600'}`}>
+                                    <div key={signal.id} className={`p-4 flex items-center gap-4 border transition-colors ${isMe ? 'bg-green-900/10 border-green-900/30' : 'bg-black border-neutral-800 hover:border-neutral-600'}`}>
                                         <div className="relative">
-                                            <img src={signal.profile.avatar} alt={signal.profile.name} className={`w-14 h-14 rounded-full object-cover border ${signal.isTest ? 'border-neutral-700 grayscale' : 'border-neutral-700'}`} />
-                                            <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border border-black shadow-[0_0_5px_#22c55e] ${signal.isTest ? 'bg-neutral-500 shadow-none' : 'bg-green-500'}`}></div>
+                                            <img src={signal.profile.avatar} alt={signal.profile.name} className="w-14 h-14 rounded-full object-cover border border-neutral-700" />
+                                            <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border border-black shadow-[0_0_5px_#22c55e] bg-green-500`}></div>
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex justify-between items-start">
                                                 <h4 className="text-white font-serif text-lg truncate flex items-center gap-2">
                                                     {signal.profile.name}
                                                     {isMe && <span className="text-xs text-neutral-500">(Tu)</span>}
-                                                    {signal.isTest && <span className="text-[9px] bg-neutral-800 text-neutral-500 border border-neutral-700 px-1 rounded flex items-center gap-1"><Bot className="w-3 h-3" /> TEST</span>}
                                                 </h4>
                                                 <span className="text-[10px] uppercase text-neutral-500 border border-neutral-800 px-2 py-0.5 rounded">{signal.profile.role.replace('_', ' ')}</span>
                                             </div>
@@ -627,16 +578,10 @@ const RadarView: React.FC<RadarProps> = ({ currentUser, onOpenChat }) => {
                                                 <span>Scade: {new Date(signal.expires_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                             </div>
 
-                                            {!signal.isTest ? (
-                                                <div className="flex gap-2 mt-3">
-                                                    <a href={`https://www.google.com/maps/dir/?api=1&destination=${signal.latitude},${signal.longitude}`} target="_blank" className="inline-flex items-center gap-1 text-xs text-neutral-500 hover:text-white border border-neutral-800 hover:border-neutral-500 px-3 py-1.5 transition-colors"><Navigation className="w-3 h-3" /> Raggiungi</a>
-                                                    <button onClick={() => onOpenChat({ id: signal.user_id, name: signal.profile.name, avatar: signal.profile.avatar })} className="inline-flex items-center gap-1 text-xs bg-crimson-900 text-white border border-crimson-700 px-3 py-1.5 hover:bg-crimson-800 transition-colors"><MessageSquare className="w-3 h-3" /> Scrivi</button>
-                                                </div>
-                                            ) : (
-                                                <div className="mt-3 text-[10px] text-neutral-600 uppercase font-bold border border-neutral-800 p-1.5 text-center bg-neutral-900/50 cursor-not-allowed">
-                                                    Interazioni disabilitate (Test)
-                                                </div>
-                                            )}
+                                            <div className="flex gap-2 mt-3">
+                                                <a href={`https://www.google.com/maps/dir/?api=1&destination=${signal.latitude},${signal.longitude}`} target="_blank" className="inline-flex items-center gap-1 text-xs text-neutral-500 hover:text-white border border-neutral-800 hover:border-neutral-500 px-3 py-1.5 transition-colors"><Navigation className="w-3 h-3" /> Raggiungi</a>
+                                                <button onClick={() => onOpenChat({ id: signal.user_id, name: signal.profile.name, avatar: signal.profile.avatar })} className="inline-flex items-center gap-1 text-xs bg-crimson-900 text-white border border-crimson-700 px-3 py-1.5 hover:bg-crimson-800 transition-colors"><MessageSquare className="w-3 h-3" /> Scrivi</button>
+                                            </div>
                                         </div>
                                     </div>
                                 );
