@@ -1209,28 +1209,33 @@ export const api = {
   },
 
   getUnreadMessageCount: async (userId: string): Promise<number> => {
-    // Rimuoviamo il cutoff per essere sicuri di contare TUTTI i messaggi pendenti
-    const { data, error } = await supabase
+    const cutoff = new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString();
+
+    // Trigger cleanup via RPC (SECURITY DEFINER)
+    supabase.rpc('cleanup_old_messages').then();
+
+    const { count, error } = await supabase
       .from("private_messages")
-      .select("id")
+      .select("id", { count: 'exact', head: true })
       .eq("receiver_id", userId)
-      .or('is_read.is.null,is_read.eq.false');
+      .eq("is_read", false)
+      .gt("created_at", cutoff);
 
     if (error) {
       console.error("Error fetching unread count:", error);
       return 0;
     }
-    return data?.length || 0;
+    return count || 0;
   },
 
   markMessagesAsRead: async (myId: string, otherId: string): Promise<void> => {
-    // Rimuoviamo il cutoff per assicurarci di pulire TUTTI i messaggi vecchi non letti tra questi due utenti
-    await supabase
-      .from("private_messages")
-      .update({ is_read: true })
-      .eq("receiver_id", myId)
-      .eq("sender_id", otherId)
-      .or('is_read.is.null,is_read.eq.false');
+    // Usiamo RPC per bypassare RLS
+    const { error } = await supabase.rpc('mark_chat_read', {
+      p_me: myId,
+      p_other: otherId
+    });
+
+    if (error) console.error("Error marking messages as read via RPC:", error);
   },
 
   sendPrivateMessage: async (
@@ -1277,9 +1282,6 @@ export const api = {
       }).catch((e) => console.error(e));
     }
   },
-
-
-
   getInbox: async (): Promise<InboxConversation[]> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
@@ -1296,12 +1298,13 @@ export const api = {
       .in("id", partnerIds)
       .eq("is_banned", false);
 
+    // Recupera i conteggi non letti per questi partner (con cutoff 36h)
     const cutoff = new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString();
     const { data: unreadData } = await supabase
       .from("private_messages")
       .select("sender_id")
       .eq("receiver_id", user.id)
-      .or('is_read.is.null,is_read.eq.false')
+      .not("is_read", "is", true)
       .gt("created_at", cutoff);
 
     const unreadMap = (unreadData || []).reduce((acc: any, curr: any) => {
