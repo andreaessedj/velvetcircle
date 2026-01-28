@@ -25,12 +25,14 @@ const Lounge: React.FC<LoungeProps> = ({ currentUser }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([privacyDisclaimer]);
   const [inputValue, setInputValue] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatConnectionRef = useRef<{ sendMessage: (msg: ChatMessage) => Promise<void>, leave: () => void } | null>(null);
+  const isInitialLoad = useRef(true);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
   };
 
   // Connessione al canale Realtime all'avvio
@@ -51,8 +53,19 @@ const Lounge: React.FC<LoungeProps> = ({ currentUser }) => {
   }, []);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (!scrollContainerRef.current) return;
+
+    const container = scrollContainerRef.current;
+    const isSelfMessage = messages[messages.length - 1]?.userId === currentUser.id;
+
+    // Calcola se l'utente è vicino al fondo (entro 150px)
+    const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+
+    if (isInitialLoad.current || isSelfMessage || isAtBottom) {
+      scrollToBottom(isInitialLoad.current ? 'instant' : 'smooth');
+      isInitialLoad.current = false;
+    }
+  }, [messages, currentUser.id]);
 
   const handleSend = async (text = inputValue, imageUrl?: string) => {
     if (!text.trim() && !imageUrl) return;
@@ -118,7 +131,10 @@ const Lounge: React.FC<LoungeProps> = ({ currentUser }) => {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-neutral-900 via-black to-black">
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto p-6 space-y-8 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-neutral-900 via-black to-black"
+      >
         {messages.map((msg) => {
           const isMe = msg.userId === currentUser.id;
           const isSystem = msg.userId === 'system';
