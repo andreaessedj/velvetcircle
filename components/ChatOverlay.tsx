@@ -28,6 +28,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
     const chatEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [showActions, setShowActions] = useState(false);
+    const [fullScreenPhoto, setFullScreenPhoto] = useState<string | null>(null);
     const isInitialLoad = useRef(true);
 
     // Fetch and Poll messages
@@ -266,8 +267,14 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                             />
                         </div>
                     ) : (
-                        <div className="mb-2 rounded-lg overflow-hidden border border-white/10">
-                            <img src={imageUrl} className="max-w-full max-h-64 object-contain" alt="Message content" />
+                        <div
+                            className="mb-2 rounded-lg overflow-hidden border border-white/10 cursor-zoom-in group/photo relative"
+                            onClick={() => setFullScreenPhoto(imageUrl)}
+                        >
+                            <img src={imageUrl} className="max-w-full max-h-64 object-contain transition-transform group-hover/photo:scale-105" alt="Message content" />
+                            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/photo:opacity-100 transition-opacity flex items-center justify-center">
+                                <Plus className="w-8 h-8 text-white/50" />
+                            </div>
                         </div>
                     )
                 )}
@@ -505,6 +512,26 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                     </div>
                 </div>
             </div>
+
+            {/* Photo Fullscreen Overlay */}
+            {fullScreenPhoto && (
+                <div
+                    className="fixed inset-0 z-[2000] bg-black/95 flex items-center justify-center p-4 animate-fade-in cursor-zoom-out"
+                    onClick={() => setFullScreenPhoto(null)}
+                >
+                    <button
+                        onClick={() => setFullScreenPhoto(null)}
+                        className="absolute top-6 right-6 p-2 bg-neutral-900/50 hover:bg-crimson-900 border border-white/10 text-white rounded-full transition-all"
+                    >
+                        <X className="w-8 h-8" />
+                    </button>
+                    <img
+                        src={fullScreenPhoto}
+                        className="max-w-full max-h-full object-contain shadow-2xl animate-scale-in"
+                        alt="Zoomed content"
+                    />
+                </div>
+            )}
         </div>
     );
 };
