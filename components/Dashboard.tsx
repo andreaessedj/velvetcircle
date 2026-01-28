@@ -69,13 +69,13 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout, onUpdateUs
   // Global Chat State
   const [chatTarget, setChatTarget] = useState<{ id: string, name: string, avatar: string } | null>(null);
 
-  // Gestione layout iniziale: Mobile apre menu, Desktop va su Radar
+  // Gestione layout iniziale: Mobile apre menu, Desktop mostra la nuova Dashboard
   useEffect(() => {
     const handleInitialLayout = () => {
       if (window.innerWidth < 768) {
         setIsMobileMenuOpen(true);
       } else {
-        setActiveView('RADAR');
+        setActiveView('CLUB');
       }
     };
     handleInitialLayout();
@@ -117,6 +117,8 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout, onUpdateUs
 
   // 1. NAVIGAZIONE GENERALE (Sidebar Principale)
   const mainNavItems: (({ id: DashboardView; label: string; icon: React.ElementType }) | { type: 'separator' })[] = [
+    { id: 'CLUB', label: t('dashboard.nav.club'), icon: Sparkles },
+    { type: 'separator' },
     { id: 'CONFESSIONAL', label: t('dashboard.nav.confessional'), icon: VenetianMask },
     { id: 'RADAR', label: t('dashboard.nav.radar'), icon: Radar },
     { id: 'CIRCLES', label: t('dashboard.nav.circles'), icon: Key },
@@ -139,7 +141,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout, onUpdateUs
 
   const renderContent = () => {
     switch (activeView) {
-      case 'CLUB': return <Lounge currentUser={currentUser} />;
+      case 'CLUB': return <Lounge currentUser={currentUser} onViewChange={setActiveView} onOpenChat={handleOpenChat} />;
       case 'CLUB_LIST': return <ClubList currentUser={currentUser} onOpenEvents={(club) => { setSelectedClub(club); setActiveView('CLUB_EVENTS'); }} onOpenProfile={(club) => { setSelectedClub(club); setActiveView('CLUB_PROFILE'); }} />;
       case 'CLUB_EVENTS': return <ClubEvents currentUser={currentUser} club={selectedClub || undefined} onBack={() => setActiveView('CLUB_LIST')} />;
       case 'CLUB_PROFILE': return selectedClub ? <ClubProfileView club={selectedClub} onBack={() => setActiveView('CLUB_LIST')} /> : <ClubList currentUser={currentUser} onOpenEvents={(club) => { setSelectedClub(club); setActiveView('CLUB_EVENTS'); }} onOpenProfile={(club) => { setSelectedClub(club); setActiveView('CLUB_PROFILE'); }} />;
@@ -157,7 +159,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout, onUpdateUs
       case 'TERMS':
       case 'PRIVACY':
         return <LegalPages type={activeView} onBack={() => setActiveView('CLUB')} />;
-      default: return <Lounge currentUser={currentUser} />;
+      default: return <Lounge currentUser={currentUser} onViewChange={setActiveView} onOpenChat={handleOpenChat} />;
     }
   };
 
