@@ -78,9 +78,9 @@
         },
         "payout_modal": {
             "title": "Request Payout",
-            "desc": "Convert your balance into Euro. Payment will be sent to your PayPal account.",
+            "desc": "Convert your balance into Euro. The only accepted payout method is PayPal. For service cost purposes, a 5% fee will be deducted from the transaction.",
             "warning_title": "WARNING:",
-            "warning_text": "Credits will NOT be immediately deducted from your balance. The administrator will receive your request, verify activity, and process payment manually. Only after payment confirmation will the balance be updated.",
+            "warning_text": "Credits will NOT be immediately deducted from your balance. The administrator will receive your request, verify activity, and process payment manually EXCLUSIVELY via PayPal (5% fee included). Balance will be updated after payment.",
             "balance_label": "Your Current Balance",
             "paypal_email_label": "PayPal Email",
             "send_request": "Send Request"

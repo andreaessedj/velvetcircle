@@ -78,9 +78,9 @@
         },
         "payout_modal": {
             "title": "Richiedi Payout",
-            "desc": "Converti il tuo saldo in Euro. Il pagamento verrà inviato al tuo conto PayPal.",
+            "desc": "Converti il tuo saldo in Euro. Il metodo di accredito unico è PayPal. Ai fini dei costi di servizio, alla transazione sarà applicata una commissione del 5%.",
             "warning_title": "ATTENZIONE:",
-            "warning_text": "I crediti NON verranno scalati immediatamente dal tuo saldo. L'amministratore riceverà la tua richiesta, verificherà l'attività e procederà al pagamento manuale. Solo dopo la conferma del pagamento, il saldo verrà aggiornato.",
+            "warning_text": "I crediti NON verranno scalati immediatamente dal tuo saldo. L'amministratore riceverà la tua richiesta, verificherà l'attività e procederà al pagamento manuale ESCLUSIVAMENTE via PayPal (commissione 5% inclusa). Solo dopo la conferma del pagamento, il saldo verrà aggiornato.",
             "balance_label": "Tuo Saldo Attuale",
             "paypal_email_label": "Email PayPal",
             "send_request": "Invia Richiesta"
