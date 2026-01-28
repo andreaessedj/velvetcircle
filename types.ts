@@ -111,6 +111,8 @@ export interface PrivateMessage {
   is_black_rose?: boolean; // Client-side derived property
   image_url?: string;
   is_ephemeral?: boolean;
+  price?: number; // NUOVO: Prezzo per sbloccare (0 = free)
+  unlocked_by?: string[]; // NUOVO: Lista ID utenti che hanno sbloccato
   ephemeral_reveals?: Record<string, string>; // user_id -> revealed_at
 }
 
