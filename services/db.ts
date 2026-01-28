@@ -1210,13 +1210,20 @@ export const api = {
 
   getUnreadMessageCount: async (userId: string): Promise<number> => {
     const cutoff = new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString();
-    const { count, error } = await supabase
+    // Filtriamo i messaggi in modo che corrispondano solo agli utenti non bannati (come nell'Inbox)
+    const { data: unreadData, error } = await supabase
       .from("private_messages")
-      .select("*", { count: 'exact', head: true })
+      .select("sender_id, sender:profiles!sender_id!inner(is_banned)")
       .eq("receiver_id", userId)
-      .eq("is_read", false)
+      .or('is_read.is.null,is_read.eq.false')
+      .eq("sender.is_banned", false)
       .gt("created_at", cutoff);
-    return error ? 0 : count || 0;
+
+    if (error) {
+      console.error("Error fetching unread count:", error);
+      return 0;
+    }
+    return unreadData?.length || 0;
   },
 
   markMessagesAsRead: async (myId: string, otherId: string): Promise<void> => {
@@ -1225,7 +1232,7 @@ export const api = {
       .update({ is_read: true })
       .eq("receiver_id", myId)
       .eq("sender_id", otherId)
-      .eq("is_read", false);
+      .or('is_read.is.null,is_read.eq.false');
   },
 
   sendPrivateMessage: async (
@@ -1256,7 +1263,8 @@ export const api = {
         receiver_id: receiverId,
         content: finalContent,
         image_url: imageUrl,
-        is_ephemeral: isEphemeral
+        is_ephemeral: isEphemeral,
+        is_read: false
       }]);
     if (error) throw error;
     if (senderName) {
@@ -1294,7 +1302,7 @@ export const api = {
       .from("private_messages")
       .select("sender_id")
       .eq("receiver_id", user.id)
-      .eq("is_read", false)
+      .or('is_read.is.null,is_read.eq.false')
       .gt("created_at", cutoff);
 
     const unreadMap = (unreadData || []).reduce((acc: any, curr: any) => {
