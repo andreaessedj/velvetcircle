@@ -21,12 +21,14 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
     const [showTipMenu, setShowTipMenu] = useState(false);
     const [playingCard, setPlayingCard] = useState(false);
     const [sendingTip, setSendingTip] = useState(false);
-    const chatEndRef = useRef<HTMLDivElement>(null);
     const [sendingBlackRose, setSendingBlackRose] = useState(false);
     const [uploadingImage, setUploadingImage] = useState(false);
     const [isEphemeralMode, setIsEphemeralMode] = useState(false);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const chatEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [showActions, setShowActions] = useState(false);
+    const isInitialLoad = useRef(true);
 
     // Fetch and Poll messages
     useEffect(() => {
@@ -34,7 +36,13 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
         const fetchMessages = async () => {
             try {
                 const msgs = await api.getPrivateMessages(currentUser.id, targetUser.id);
-                setMessages(msgs);
+                setMessages(prev => {
+                    // Solo se i messaggi sono cambiati davvero (lunghezza o contenuto ultimo msg)
+                    if (prev.length === msgs.length && prev[prev.length - 1]?.id === msgs[msgs.length - 1]?.id) {
+                        return prev;
+                    }
+                    return msgs;
+                });
                 setLoading(false);
             } catch (e) {
                 console.error(e);
@@ -47,10 +55,21 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
         return () => clearInterval(interval);
     }, [currentUser.id, targetUser.id]);
 
-    // Scroll to bottom on new messages
+    // Scroll to bottom logic
     useEffect(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+        if (!scrollContainerRef.current) return;
+
+        const container = scrollContainerRef.current;
+        const isSelfMessage = messages[messages.length - 1]?.sender_id === currentUser.id;
+
+        // Calcola se l'utente è vicino al fondo (entro 150px)
+        const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+
+        if (isInitialLoad.current || isSelfMessage || isAtBottom) {
+            chatEndRef.current?.scrollIntoView({ behavior: isInitialLoad.current ? 'instant' : 'smooth' });
+            isInitialLoad.current = false;
+        }
+    }, [messages, currentUser.id]);
 
     const handleSendMessage = async (text = newMessage, isBlackRose = false, imageUrl?: string, isEphemeral = isEphemeralMode) => {
         if (!text.trim() && !imageUrl) return;
@@ -274,7 +293,10 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                 </div>
 
                 {/* Chat Messages */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-black/50 custom-scrollbar relative">
+                <div
+                    ref={scrollContainerRef}
+                    className="flex-1 overflow-y-auto p-4 space-y-4 bg-black/50 custom-scrollbar relative"
+                >
                     {loading && messages.length === 0 ? (
                         <div className="flex justify-center p-4"><Loader className="animate-spin text-crimson-800" /></div>
                     ) : messages.length === 0 ? (
