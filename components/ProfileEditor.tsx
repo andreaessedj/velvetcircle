@@ -40,6 +40,8 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({ user, onUpdate, onClose }
     const [linkInput, setLinkInput] = useState('');
     const [geoLoading, setGeoLoading] = useState(false);
     const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+    const [uploadMode, setUploadMode] = useState<'SINGLE' | 'BUNDLE'>('SINGLE');
+    const [bundleTitle, setBundleTitle] = useState('');
 
     const geocodeAddress = async () => {
         if (!clubProfile?.address || !clubProfile?.city) {
@@ -160,20 +162,42 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({ user, onUpdate, onClose }
         const files = e.target.files;
         if (!files || files.length === 0) return;
 
-        // Limit removed: users can now set prices from 1 credit upwards. 0 is free.
-
         setUploadingVault(true);
         try {
-            const newPhotos: VaultItem[] = [];
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const newPhoto = await api.uploadVaultPhoto(file, user.id, vaultPrice);
-                newPhotos.push(newPhoto);
+            if (uploadMode === 'BUNDLE') {
+                const uploadedUrls: string[] = [];
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    // We upload individual files but group them. Individual IDs aren't used for purchase if grouped.
+                    const newPhoto = await api.uploadVaultPhoto(file, user.id, 0);
+                    uploadedUrls.push(newPhoto.url);
+                }
+                const bundleItem: VaultItem = {
+                    id: `bundle-${Date.now()}`,
+                    url: uploadedUrls[0], // First image as cover
+                    price: vaultPrice,
+                    uploadedAt: new Date().toISOString(),
+                    type: 'BUNDLE',
+                    urls: uploadedUrls,
+                    title: bundleTitle || 'Collection'
+                };
+                const updatedVault = [...vault, bundleItem];
+                setVault(updatedVault);
+                await api.updateProfile(user.id, { gallery: updatedVault });
+                onUpdate({ gallery: updatedVault });
+                setBundleTitle('');
+            } else {
+                const newPhotos: VaultItem[] = [];
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const newPhoto = await api.uploadVaultPhoto(file, user.id, vaultPrice);
+                    newPhotos.push(newPhoto);
+                }
+                const updatedVault = [...vault, ...newPhotos];
+                setVault(updatedVault);
+                await api.updateProfile(user.id, { gallery: updatedVault });
+                onUpdate({ gallery: updatedVault });
             }
-            const updatedVault = [...vault, ...newPhotos];
-            setVault(updatedVault);
-            await api.updateProfile(user.id, { gallery: updatedVault });
-            onUpdate({ gallery: updatedVault });
             setVaultPrice(0);
             alert(t('profile_editor.alerts.vault_success'));
         } catch (err: any) {
@@ -544,39 +568,68 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({ user, onUpdate, onClose }
                                     </button>
                                 </div>
 
-                                <div className="flex items-center gap-4">
-                                    <div className="relative">
-                                        <Coins className="w-3 h-3 text-gold-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                                        <input
-                                            type="number"
-                                            value={vaultPrice}
-                                            onChange={(e) => setVaultPrice(Number(e.target.value))}
-                                            placeholder={t('profile_editor.vault.price_placeholder')}
-                                            className="w-24 bg-black border border-neutral-700 text-white pl-8 pr-2 py-2 text-xs focus:border-gold-500 outline-none rounded"
-                                            min="0"
-                                            step="1"
-                                        />
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex gap-2 p-1 bg-black rounded-lg border border-neutral-800">
+                                            <button
+                                                onClick={() => setUploadMode('SINGLE')}
+                                                className={`px-3 py-1.5 text-[10px] uppercase font-bold rounded transition-all ${uploadMode === 'SINGLE' ? 'bg-crimson-900 text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
+                                            >
+                                                Singoli
+                                            </button>
+                                            <button
+                                                onClick={() => setUploadMode('BUNDLE')}
+                                                className={`px-3 py-1.5 text-[10px] uppercase font-bold rounded transition-all ${uploadMode === 'BUNDLE' ? 'bg-crimson-900 text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
+                                            >
+                                                Cartella (Bundle)
+                                            </button>
+                                        </div>
+
+                                        {uploadMode === 'BUNDLE' && (
+                                            <input
+                                                type="text"
+                                                value={bundleTitle}
+                                                onChange={(e) => setBundleTitle(e.target.value)}
+                                                placeholder="Nome cartella..."
+                                                className="flex-1 bg-black border border-neutral-700 text-white px-3 py-2 text-xs focus:border-crimson-500 outline-none rounded"
+                                            />
+                                        )}
                                     </div>
-                                    <label className="bg-crimson-900 hover:bg-crimson-800 text-white px-4 py-2 text-xs uppercase font-bold cursor-pointer flex items-center gap-2 transition-all border border-crimson-700 rounded">
-                                        {uploadingVault ? <Loader className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                                        {t('profile_editor.vault.upload_btn')}
-                                        <input type="file" className="hidden" accept="image/*" onChange={addToVault} disabled={uploadingVault} />
-                                    </label>
-                                    <div className="flex-1 flex gap-2">
-                                        <input
-                                            type="text"
-                                            value={linkInput}
-                                            onChange={(e) => setLinkInput(e.target.value)}
-                                            placeholder={t('profile_editor.vault.link_placeholder')}
-                                            className="flex-1 bg-black border border-neutral-700 text-white px-3 py-2 text-[10px] focus:border-gold-500 outline-none rounded"
-                                        />
-                                        <button
-                                            onClick={addLinkToVault}
-                                            disabled={uploadingVault || !linkInput.trim()}
-                                            className="bg-neutral-800 hover:bg-neutral-700 text-white px-3 py-2 text-[10px] uppercase font-bold rounded flex items-center gap-2 border border-neutral-700 transition-all disabled:opacity-50"
-                                        >
-                                            <Plus className="w-3.5 h-3.5" /> {t('profile_editor.vault.add_link_btn')}
-                                        </button>
+
+                                    <div className="flex items-center gap-4">
+                                        <div className="relative">
+                                            <Coins className="w-3 h-3 text-gold-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                                            <input
+                                                type="number"
+                                                value={vaultPrice}
+                                                onChange={(e) => setVaultPrice(Number(e.target.value))}
+                                                placeholder={t('profile_editor.vault.price_placeholder')}
+                                                className="w-24 bg-black border border-neutral-700 text-white pl-8 pr-2 py-2 text-xs focus:border-gold-500 outline-none rounded"
+                                                min="0"
+                                                step="1"
+                                            />
+                                        </div>
+                                        <label className={`bg-crimson-900 hover:bg-crimson-800 text-white px-4 py-2 text-xs uppercase font-bold cursor-pointer flex items-center gap-2 transition-all border border-crimson-700 rounded ${uploadingVault ? 'opacity-50 pointer-events-none' : ''}`}>
+                                            {uploadingVault ? <Loader className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                                            {uploadMode === 'BUNDLE' ? 'Carica Folder' : t('profile_editor.vault.upload_btn')}
+                                            <input type="file" className="hidden" accept="image/*" multiple onChange={addToVault} disabled={uploadingVault} />
+                                        </label>
+                                        <div className="flex-1 flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={linkInput}
+                                                onChange={(e) => setLinkInput(e.target.value)}
+                                                placeholder={t('profile_editor.vault.link_placeholder')}
+                                                className="flex-1 bg-black border border-neutral-700 text-white px-3 py-2 text-[10px] focus:border-gold-500 outline-none rounded"
+                                            />
+                                            <button
+                                                onClick={addLinkToVault}
+                                                disabled={uploadingVault || !linkInput.trim()}
+                                                className="bg-neutral-800 hover:bg-neutral-700 text-white px-3 py-2 text-[10px] uppercase font-bold rounded flex items-center gap-2 border border-neutral-700 transition-all disabled:opacity-50"
+                                            >
+                                                <Plus className="w-3.5 h-3.5" /> {t('profile_editor.vault.add_link_btn')}
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -618,6 +671,26 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({ user, onUpdate, onClose }
                                                                 {item.url.replace(/^https?:\/\//, '').split('/')[0]}
                                                             </p>
                                                             <p className="text-[8px] text-neutral-500 mt-1 uppercase">Link</p>
+                                                        </div>
+                                                    ) : item.type === 'BUNDLE' ? (
+                                                        <div
+                                                            className="w-full h-full relative cursor-pointer"
+                                                            onClick={() => {
+                                                                setEditingPhotoId(item.id);
+                                                                setEditPrice(item.price);
+                                                            }}
+                                                        >
+                                                            <img
+                                                                src={item.url}
+                                                                className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 opacity-60"
+                                                            />
+                                                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40">
+                                                                <Grid className="w-8 h-8 text-gold-500 mb-2" />
+                                                                <p className="text-[10px] text-white font-bold uppercase tracking-widest px-2 text-center">
+                                                                    {item.title || 'Collection'}
+                                                                </p>
+                                                                <p className="text-[8px] text-neutral-400 mt-1 uppercase">{item.urls?.length || 0} Foto</p>
+                                                            </div>
                                                         </div>
                                                     ) : (
                                                         <img
