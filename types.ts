@@ -9,10 +9,12 @@ export enum UserRole {
 
 export interface VaultItem {
   id: string;
-  url: string;
+  url: string; // For BUNDLE, this can be the cover image
   price: number; // 0 = Gratis/Pubblico, >0 = Pay Per View
   uploadedAt: string;
-  type?: 'IMAGE' | 'LINK';
+  type?: 'IMAGE' | 'LINK' | 'BUNDLE';
+  urls?: string[]; // Used for BUNDLE type
+  title?: string; // Optional title for the bundle/folder
 }
 
 export interface User {
