@@ -195,10 +195,10 @@ const Membership: React.FC<MembershipProps> = ({ currentUser, onRefreshUser }) =
                     <div className="w-full space-y-3">
                         {[
                             { amount: 10, bonus: 0, price: '€10', link: 'https://ko-fi.com/s/f4ec730844', tier: 'Starter', icon: Coins, color: 'text-amber-500/60' },
-                            { amount: 24, bonus: 4, price: '€20', link: 'https://ko-fi.com/s/5e4bbc60c9', tier: 'Silver', icon: CreditCard, color: 'text-slate-400', popular: true },
-                            { amount: 36, bonus: 6, price: '€30', link: 'https://ko-fi.com/s/01e0915950', tier: 'Gold', icon: Star, color: 'text-yellow-500' },
-                            { amount: 50, bonus: 10, price: '€40', link: 'https://ko-fi.com/s/24bc25a629', tier: 'Platinum', icon: Gem, color: 'text-cyan-400' },
-                            { amount: 65, bonus: 15, price: '€50', link: 'https://ko-fi.com/s/fa098d3767', tier: 'Diamond', icon: Crown, color: 'text-gold-400', special: true },
+                            { amount: 21, bonus: 1, price: '€20', link: 'https://ko-fi.com/s/5e4bbc60c9', tier: 'Silver', icon: CreditCard, color: 'text-slate-400', popular: true },
+                            { amount: 32, bonus: 2, price: '€30', link: 'https://ko-fi.com/s/01e0915950', tier: 'Gold', icon: Star, color: 'text-yellow-500' },
+                            { amount: 44, bonus: 4, price: '€40', link: 'https://ko-fi.com/s/24bc25a629', tier: 'Platinum', icon: Gem, color: 'text-cyan-400' },
+                            { amount: 56, bonus: 6, price: '€50', link: 'https://ko-fi.com/s/fa098d3767', tier: 'Diamond', icon: Crown, color: 'text-gold-400', special: true },
                         ].map((pkg) => (
                             <a
                                 key={pkg.amount}
