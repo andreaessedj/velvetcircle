@@ -6,6 +6,9 @@ import { X, Clock, Send, Loader, Gamepad2, Sparkles, Flame, Zap, Flower, Coins, 
 import EphemeralMoment from './features/EphemeralMoment';
 import { useTranslation } from 'react-i18next';
 import { AudioRecorder } from '../utils/audioHelpers';
+import AudioVisualizer from './AudioVisualizer';
+import AudioPlayer from './AudioPlayer';
+
 
 interface ChatOverlayProps {
     currentUser: User;
@@ -352,20 +355,8 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
             const duration = parts[1]?.replace(':::', '') || '0';
 
             return (
-                <div className="mt-1 mb-1 p-3 border border-neutral-700 bg-neutral-900/50 rounded-lg flex items-center gap-3 min-w-[200px]">
-                    <div className="w-10 h-10 rounded-full bg-crimson-900/20 flex items-center justify-center border border-crimson-900/30">
-                        <Mic className="w-5 h-5 text-crimson-500" />
-                    </div>
-                    <div className="flex-1">
-                        <audio
-                            controls
-                            src={imageUrl}
-                            className="w-full h-8 max-w-[200px]"
-                            crossOrigin="anonymous"
-                            preload="metadata"
-                        />
-                    </div>
-                    <span className="text-[10px] text-neutral-500">{duration}s</span>
+                <div className="mt-1 mb-1 max-w-[300px] w-full">
+                    <AudioPlayer src={imageUrl || ''} duration={parseFloat(duration)} />
                 </div>
             );
         }
@@ -593,20 +584,34 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                     {/* Main Input Row */}
                     <div className="flex gap-2 items-center">
                         {isRecording || audioBlob ? (
-                            <div className="flex-1 bg-neutral-900 border border-crimson-900/50 rounded-xl p-2 flex items-center justify-between animate-fade-in">
+                            <div className="flex-1 bg-neutral-900 border border-crimson-900/50 rounded-xl p-2 flex items-center justify-between animate-fade-in gap-3">
                                 {isRecording ? (
-                                    <div className="flex items-center gap-3 px-2">
-                                        <div className="w-3 h-3 rounded-full bg-crimson-500 animate-pulse" />
-                                        <span className="text-crimson-400 font-mono font-bold animate-pulse">{recordingDuration}s / 60s</span>
-                                    </div>
+                                    <>
+                                        <div className="flex items-center gap-3 px-2 flex-shrink-0">
+                                            <div className="w-3 h-3 rounded-full bg-crimson-500 animate-pulse shadow-[0_0_10px_#ef4444]" />
+                                            <span className="text-crimson-400 font-mono font-bold w-12">{recordingDuration}s</span>
+                                        </div>
+                                        {/* Visualizer */}
+                                        <div className="flex-1 h-8 bg-neutral-950/50 rounded-lg overflow-hidden border border-white/5">
+                                            <AudioVisualizer
+                                                analyser={audioRecorderRef.current?.getAnalyser()}
+                                                isRecording={isRecording}
+                                            />
+                                        </div>
+                                    </>
                                 ) : (
-                                    <div className="flex items-center gap-3 px-2">
-                                        <div className="w-3 h-3 rounded-full bg-green-500" />
-                                        <span className="text-white font-mono font-bold">Audio Ready ({recordingDuration}s)</span>
+                                    <div className="flex items-center gap-3 px-2 flex-1">
+                                        <div className="w-8 h-8 rounded-full bg-green-500/20 text-green-500 flex items-center justify-center border border-green-500/30">
+                                            <Play className="w-4 h-4 fill-current ml-0.5" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-white font-bold text-sm">Audio Pronto</span>
+                                            <span className="text-neutral-500 text-xs font-mono">{recordingDuration}s • .wav</span>
+                                        </div>
                                     </div>
                                 )}
 
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 flex-shrink-0">
                                     <button
                                         onClick={cancelRecording}
                                         className="p-2 text-neutral-400 hover:text-white transition-colors"
@@ -618,7 +623,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                                     {isRecording ? (
                                         <button
                                             onClick={stopRecording}
-                                            className="p-2 bg-crimson-900/50 text-crimson-200 rounded-lg hover:bg-crimson-900 transition-colors"
+                                            className="p-2 bg-crimson-900/50 text-crimson-200 rounded-lg hover:bg-crimson-900 transition-colors border border-crimson-800"
                                             title="Stop Registrazione"
                                         >
                                             <Square className="w-5 h-5 fill-current" />
@@ -627,7 +632,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                                         <button
                                             onClick={sendAudioMessage}
                                             disabled={uploadingAudio}
-                                            className="p-2 bg-green-900/50 text-green-200 rounded-lg hover:bg-green-900 transition-colors"
+                                            className="p-2 bg-green-900/50 text-green-200 rounded-lg hover:bg-green-900 transition-colors border border-green-800"
                                             title="Invia Audio"
                                         >
                                             {uploadingAudio ? <Loader className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
