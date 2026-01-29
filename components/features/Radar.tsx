@@ -594,7 +594,7 @@ const RadarView: React.FC<RadarProps> = ({ currentUser, onOpenChat }) => {
             {/* MOBILE FLOATING ACTION BUTTON */}
             <button
                 onClick={() => setShowMobileBroadcast(true)}
-                className="lg:hidden fixed bottom-6 right-6 z-30 bg-crimson-900 text-white p-4 rounded-full shadow-[0_0_20px_rgba(220,38,38,0.5)] border border-crimson-500 animate-fade-in"
+                className="lg:hidden fixed bottom-20 right-6 z-30 bg-crimson-900 text-white p-4 rounded-full shadow-[0_0_20px_rgba(220,38,38,0.5)] border border-crimson-500 animate-fade-in"
             >
                 {activeCheckinId ? <Activity className="w-6 h-6 animate-pulse" /> : <Plus className="w-6 h-6" />}
             </button>
