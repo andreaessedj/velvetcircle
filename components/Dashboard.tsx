@@ -444,7 +444,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout, onUpdateUs
       <main className="flex-1 overflow-y-auto bg-neutral-950 pt-16 md:pt-0 relative">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-leather.png')] opacity-20 pointer-events-none"></div>
         {/* Added pb-16 to avoid content being hidden behind the legal bar */}
-        <div className={`${activeView === 'RADAR' || activeView === 'COMPANION' ? 'p-0 md:p-8 h-full' : 'p-4 md:p-8 max-w-7xl mx-auto pb-16'} min-h-full relative z-10`}>
+        <div className={`${activeView === 'RADAR' || activeView === 'COMPANION' ? 'p-0 md:p-8 h-full pb-20 md:pb-12' : 'p-4 md:p-8 max-w-7xl mx-auto pb-16'} min-h-full relative z-10`}>
           {renderContent()}
         </div>
 
