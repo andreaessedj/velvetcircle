@@ -5,6 +5,7 @@ import { api } from '../services/db';
 import { X, Clock, Send, Loader, Gamepad2, Sparkles, Flame, Zap, Flower, Coins, Image as ImageIcon, ZapOff, Plus, Mic, Square, Play, Pause } from 'lucide-react';
 import EphemeralMoment from './features/EphemeralMoment';
 import { useTranslation } from 'react-i18next';
+import { AudioRecorder } from '../utils/audioHelpers';
 
 interface ChatOverlayProps {
     currentUser: User;
@@ -199,58 +200,21 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
     };
 
     // Audio Recording Functions
-    const [recordingMimeType, setRecordingMimeType] = useState<string>('');
-
-    const getSupportedMimeType = () => {
-        const types = [
-            'audio/mp4',
-            'audio/webm;codecs=opus',
-            'audio/webm',
-            'audio/ogg'
-        ];
-
-        for (const type of types) {
-            if (MediaRecorder.isTypeSupported(type)) {
-                return type;
-            }
-        }
-        return ''; // Let browser decide default
-    };
+    const audioRecorderRef = useRef<AudioRecorder | null>(null);
 
     const startRecording = async () => {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const mimeType = getSupportedMimeType();
-            setRecordingMimeType(mimeType);
+            audioRecorderRef.current = new AudioRecorder();
+            await audioRecorderRef.current.start();
 
-            const options = mimeType ? { mimeType } : undefined;
-            const mediaRecorder = new MediaRecorder(stream, options);
-
-            mediaRecorderRef.current = mediaRecorder;
-            audioChunksRef.current = [];
-
-            mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) {
-                    audioChunksRef.current.push(event.data);
-                }
-            };
-
-            mediaRecorder.onstop = () => {
-                const type = recordingMimeType || 'audio/webm';
-                const audioBlob = new Blob(audioChunksRef.current, { type });
-                setAudioBlob(audioBlob);
-                stream.getTracks().forEach(track => track.stop());
-            };
-
-            mediaRecorder.start();
             setIsRecording(true);
             setRecordingDuration(0);
 
-            // Timer per durata registrazione
+            // Timer for duration
             recordingIntervalRef.current = setInterval(() => {
                 setRecordingDuration(prev => {
                     const newDuration = prev + 1;
-                    // Stop automatico a 60 secondi
+                    // Auto-stop at 60 seconds
                     if (newDuration >= 60) {
                         stopRecording();
                     }
@@ -259,14 +223,17 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
             }, 1000);
 
         } catch (error) {
-            console.error('Error accessing microphone:', error);
-            alert('Impossibile accedere al microfono. Verifica i permessi del browser.');
+            console.error('Error starting audio recorder:', error);
+            alert('Impossibile accedere al microfono. Verifica i permessi.');
         }
     };
 
-    const stopRecording = () => {
-        if (mediaRecorderRef.current && isRecording) {
-            mediaRecorderRef.current.stop();
+    const stopRecording = async () => {
+        if (audioRecorderRef.current && isRecording) {
+            // Stop and get the WAV blob
+            const wavBlob = await audioRecorderRef.current.stop();
+            setAudioBlob(wavBlob);
+
             setIsRecording(false);
             if (recordingIntervalRef.current) {
                 clearInterval(recordingIntervalRef.current);
@@ -276,10 +243,16 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
     };
 
     const cancelRecording = () => {
-        stopRecording();
+        if (audioRecorderRef.current) {
+            audioRecorderRef.current.cancel();
+        }
         setAudioBlob(null);
         setRecordingDuration(0);
-        audioChunksRef.current = [];
+        setIsRecording(false);
+        if (recordingIntervalRef.current) {
+            clearInterval(recordingIntervalRef.current);
+            recordingIntervalRef.current = null;
+        }
     };
 
     const sendAudioMessage = async () => {
@@ -287,21 +260,8 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
 
         setUploadingAudio(true);
         try {
-            // Determine file extension based on mime type
-            const type = recordingMimeType || audioBlob.type || 'audio/webm';
-            const ext = type.includes('mp4') ? 'mp4' : 'webm';
-
-            // Upload audio using the new API method (api.uploadAudio handles bucket logic)
-            // We pass the blob directly; the DB service builds the filename. 
-            // NOTE: We might need to update uploadAudio to accept extension or detect it.
-            // For now, let's assume uploadAudio names it .webm, which might be an issue.
-            // Let's modify uploadAudio call or better yet, make uploadAudio smarter?
-            // Actually, let's keep it simple: Pass the blob.
-
-            // But wait, db.ts hardcodes .webm. We should fix db.ts too if we want proper extension.
-            // For now, even if named .webm, most players execute by content sniffing.
-            // Let's update uploadAudio in db.ts to be safe in the next step.
-
+            // Upload audio (db service accepts blobs)
+            // It handles extension detection now
             const publicUrl = await api.uploadAudio(audioBlob, currentUser.id);
 
             // Send message with audio URL using specific marker for audio
@@ -310,7 +270,6 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
             // Reset audio state
             setAudioBlob(null);
             setRecordingDuration(0);
-            audioChunksRef.current = [];
         } catch (error: any) {
             console.error('Error uploading audio:', error);
             // Show detailed error to user for debugging
