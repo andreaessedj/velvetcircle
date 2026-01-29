@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar, MapPin, Clock, Tag, ChevronLeft, Plus, Trash2, Edit, X, ImageIcon } from 'lucide-react';
+import { Calendar, MapPin, Clock, Tag, ChevronLeft, Plus, Trash2, Edit, X, ImageIcon, Share2, Copy } from 'lucide-react';
 import { api } from '../../services/db';
 import { ClubProfile, ClubEvent, User, UserRole } from '../../types';
 
@@ -277,6 +277,9 @@ const ClubEvents: React.FC<ClubEventsProps> = ({ currentUser, club, onBack }) =>
                                         <span>{event.location || club?.address} (Naviga)</span>
                                     </a>
                                 </div>
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                    <SocialShareButtons event={event} clubName={club?.name} />
+                                </div>
 
                                 {event.images && event.images.length > 0 && (
                                     <div className="mt-6 flex gap-3 overflow-x-auto pb-2 no-scrollbar">
@@ -330,6 +333,68 @@ const ClubEvents: React.FC<ClubEventsProps> = ({ currentUser, club, onBack }) =>
                     />
                 </div>
             )}
+        </div>
+    );
+};
+
+const SocialShareButtons = ({ event, clubName }: { event: ClubEvent; clubName?: string }) => {
+    const { t } = useTranslation();
+    const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+    // Construct text in Italian as requested
+    const shareText = `Scopri l'evento ${event.title} presso ${clubName || 'Velvet Club'}! 
+📅 ${new Date(event.date).toLocaleDateString('it-IT')} 
+📍 ${event.location || 'Secret Location'}
+✨ Condiviso da Velvet Club`;
+
+    const encodedText = encodeURIComponent(shareText);
+    const encodedUrl = encodeURIComponent(shareUrl);
+
+    const handleShare = (platform: string) => {
+        let url = '';
+        switch (platform) {
+            case 'whatsapp':
+                url = `https://wa.me/?text=${encodedText}%20${encodedUrl}`;
+                break;
+            case 'telegram':
+                url = `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`;
+                break;
+            case 'x':
+                url = `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`;
+                break;
+            case 'instagram':
+                // Instagram logic: Copy text and open instagram
+                navigator.clipboard.writeText(`${shareText} ${shareUrl}`).then(() => {
+                    alert("Testo copiato! Apro Instagram...");
+                    window.open('https://instagram.com', '_blank');
+                });
+                return;
+        }
+        if (url) window.open(url, '_blank');
+    };
+
+    return (
+        <div className="flex items-center gap-2">
+            <span className="text-[10px] uppercase font-bold text-neutral-600 tracking-wider mr-2">{t('common.share', 'Condividi')}:</span>
+
+            {/* Instagram */}
+            <button onClick={() => handleShare('instagram')} className="p-2 bg-neutral-900 rounded hover:bg-[#E1306C] hover:text-white text-neutral-400 transition-colors group" title="Condividi su Instagram">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+            </button>
+
+            {/* X (Twitter) */}
+            <button onClick={() => handleShare('x')} className="p-2 bg-neutral-900 rounded hover:bg-white hover:text-black text-neutral-400 transition-colors group" title="Condividi su X">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M4 4l11.733 16h4.667L8.667 4H4z" fill="currentColor" stroke="none" /><path d="M4 20l6.768-6.768m2.46-2.46L20 4" /></svg>
+            </button>
+
+            {/* Telegram */}
+            <button onClick={() => handleShare('telegram')} className="p-2 bg-neutral-900 rounded hover:bg-[#0088cc] hover:text-white text-neutral-400 transition-colors group" title="Condividi su Telegram">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+
+            {/* Whatsapp */}
+            <button onClick={() => handleShare('whatsapp')} className="p-2 bg-neutral-900 rounded hover:bg-[#25D366] hover:text-white text-neutral-400 transition-colors group" title="Condividi su Whatsapp">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+            </button>
         </div>
     );
 };
