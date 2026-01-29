@@ -350,9 +350,9 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
         }
 
         // 3. Audio Messages
-        if (content.startsWith(':::AUDIO|')) {
+        if (content && content.includes(':::AUDIO|')) {
             const parts = content.split('|');
-            const duration = parts[1]?.replace(':::', '');
+            const duration = parts[1]?.replace(':::', '') || '0';
 
             return (
                 <div className="mt-1 mb-1 p-3 border border-neutral-700 bg-neutral-900/50 rounded-lg flex items-center gap-3 min-w-[200px]">
@@ -360,7 +360,13 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                         <Mic className="w-5 h-5 text-crimson-500" />
                     </div>
                     <div className="flex-1">
-                        <audio controls src={imageUrl} className="w-full h-8 max-w-[200px]" />
+                        <audio
+                            controls
+                            src={imageUrl}
+                            className="w-full h-8 max-w-[200px]"
+                            crossOrigin="anonymous"
+                            preload="metadata"
+                        />
                     </div>
                     <span className="text-[10px] text-neutral-500">{duration}s</span>
                 </div>
@@ -368,6 +374,10 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
         }
 
         // 4. Regular Message / Image / Ephemeral
+        // Ensure we don't treat audio messages as images if the above check somehow failed (defensive programming)
+        const isAudioCheck = content && content.includes(':::AUDIO|');
+        if (isAudioCheck) return null;
+
         return (
             <div className={isBlackRose ? 'pl-2' : ''}>
                 {isBlackRose && (
