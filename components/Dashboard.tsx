@@ -109,11 +109,19 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout, onUpdateUs
     const handleManualRefresh = () => fetchUnread();
     window.addEventListener('velvetRefreshUnreadCount', handleManualRefresh);
 
+    // Listener per aggiornamento crediti utente (es. dopo invio mance)
+    const handleUserRefresh = () => {
+      console.log('[DASHBOARD] Refreshing user data...');
+      onRefreshUser();
+    };
+    window.addEventListener('velvetRefreshUser', handleUserRefresh);
+
     return () => {
       clearInterval(interval);
       window.removeEventListener('velvetRefreshUnreadCount', handleManualRefresh);
+      window.removeEventListener('velvetRefreshUser', handleUserRefresh);
     };
-  }, [currentUser.id]);
+  }, [currentUser.id, onRefreshUser]);
 
   // 1. NAVIGAZIONE GENERALE (Sidebar Principale)
   const mainNavItems: (({ id: DashboardView; label: string; icon: React.ElementType }) | { type: 'separator' })[] = [

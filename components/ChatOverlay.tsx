@@ -155,22 +155,34 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
     };
 
     const handleSendTip = async (amount: number) => {
+        console.log('[TIP] Starting tip process:', { amount, currentUserCredits: currentUser.credits, targetUserId: targetUser.id });
+
         if (currentUser.credits < amount && currentUser.role !== 'ADMIN') {
+            console.log('[TIP] Insufficient credits');
             alert(t('chat.insufficient_credits'));
             return;
         }
 
-        if (!confirm(t('chat.tip_confirm', { amount, name: targetUser.name }))) return;
+        if (!confirm(t('chat.tip_confirm', { amount, name: targetUser.name }))) {
+            console.log('[TIP] User cancelled confirmation');
+            return;
+        }
 
         setSendingTip(true);
         setShowTipMenu(false);
         try {
+            console.log('[TIP] Calling api.sendTip...');
             await api.sendTip(currentUser.id, targetUser.id, amount);
+            console.log('[TIP] Tip sent successfully, fetching messages...');
             // The message is added by the backend logic, we just refetch
             const msgs = await api.getPrivateMessages(currentUser.id, targetUser.id);
             setMessages(msgs);
+            console.log('[TIP] Messages updated, tip process complete');
+
+            // Refresh user credits to show updated balance
+            window.dispatchEvent(new Event('velvetRefreshUser'));
         } catch (e: any) {
-            console.error(e);
+            console.error('[TIP] Error:', e);
             alert(e.message || t('chat.tip_error'));
         } finally {
             setSendingTip(false);
@@ -414,7 +426,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                     )}
 
                     {/* Expandable Actions Toolbar */}
-                    <div className={`flex items-center gap-2 mb-3 overflow-x-auto pb-2 custom-scrollbar transition-all duration-300 origin-bottom ${showActions ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0 pointer-events-none mb-0 overflow-hidden'}`}>
+                    <div className={`flex items-center gap-2 mb-3 overflow-x-auto pb-2 custom-scrollbar transition-all duration-300 origin-bottom ${showActions ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0 overflow-hidden mb-0'}`}>
                         <button
                             onClick={() => fileInputRef.current?.click()}
                             disabled={uploadingImage}
@@ -426,7 +438,12 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                         </button>
 
                         <button
-                            onClick={() => { setShowTipMenu(!showTipMenu); setShowCardMenu(false); }}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setShowTipMenu(!showTipMenu);
+                                setShowCardMenu(false);
+                            }}
                             disabled={sendingTip}
                             className={`flex flex-col items-center justify-center min-w-[70px] p-3 border transition-all gap-1 rounded-xl ${showTipMenu
                                 ? 'bg-yellow-600 text-black border-yellow-500'
@@ -439,7 +456,12 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                         </button>
 
                         <button
-                            onClick={() => { setShowCardMenu(!showCardMenu); setShowTipMenu(false); }}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setShowCardMenu(!showCardMenu);
+                                setShowTipMenu(false);
+                            }}
                             disabled={playingCard}
                             className={`flex flex-col items-center justify-center min-w-[70px] p-3 border transition-all gap-1 rounded-xl ${showCardMenu
                                 ? 'bg-gold-600 text-black border-gold-500'
