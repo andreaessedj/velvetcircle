@@ -44,6 +44,7 @@ export class AudioRecorder {
     private mediaStream: MediaStream | null = null;
     private scriptProcessor: ScriptProcessorNode | null = null;
     private audioInput: MediaStreamAudioSourceNode | null = null;
+    private analyser: AnalyserNode | null = null;
     private chunks: Float32Array[] = [];
     private recordingLength = 0;
     private sampleRate = 0;
@@ -56,12 +57,20 @@ export class AudioRecorder {
         this.chunks = [];
         this.recordingLength = 0;
 
+        // Create analyser for visualization
+        this.analyser = this.audioContext.createAnalyser();
+        this.analyser.fftSize = 256;
+        this.analyser.smoothingTimeConstant = 0.8;
+
         // Create a script processor node to intercept audio samples
         // Buffer size 4096 is a good balance between latency and performance
         this.scriptProcessor = this.audioContext.createScriptProcessor(4096, 1, 1);
 
         this.audioInput = this.audioContext.createMediaStreamSource(this.mediaStream);
-        this.audioInput.connect(this.scriptProcessor);
+
+        // Connect graph: Input -> Analyser -> ScriptProcessor -> Destination
+        this.audioInput.connect(this.analyser);
+        this.analyser.connect(this.scriptProcessor);
         this.scriptProcessor.connect(this.audioContext.destination);
 
         this.scriptProcessor.onaudioprocess = (e) => {
@@ -75,6 +84,11 @@ export class AudioRecorder {
 
         this.isRecording = true;
     }
+
+    getAnalyser(): AnalyserNode | null {
+        return this.analyser;
+    }
+
 
     stop(): Promise<Blob> {
         return new Promise((resolve) => {
