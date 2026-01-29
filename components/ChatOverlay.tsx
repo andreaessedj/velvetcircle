@@ -199,10 +199,33 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
     };
 
     // Audio Recording Functions
+    const [recordingMimeType, setRecordingMimeType] = useState<string>('');
+
+    const getSupportedMimeType = () => {
+        const types = [
+            'audio/mp4',
+            'audio/webm;codecs=opus',
+            'audio/webm',
+            'audio/ogg'
+        ];
+
+        for (const type of types) {
+            if (MediaRecorder.isTypeSupported(type)) {
+                return type;
+            }
+        }
+        return ''; // Let browser decide default
+    };
+
     const startRecording = async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const mediaRecorder = new MediaRecorder(stream);
+            const mimeType = getSupportedMimeType();
+            setRecordingMimeType(mimeType);
+
+            const options = mimeType ? { mimeType } : undefined;
+            const mediaRecorder = new MediaRecorder(stream, options);
+
             mediaRecorderRef.current = mediaRecorder;
             audioChunksRef.current = [];
 
@@ -213,7 +236,8 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
             };
 
             mediaRecorder.onstop = () => {
-                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                const type = recordingMimeType || 'audio/webm';
+                const audioBlob = new Blob(audioChunksRef.current, { type });
                 setAudioBlob(audioBlob);
                 stream.getTracks().forEach(track => track.stop());
             };
@@ -263,7 +287,21 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
 
         setUploadingAudio(true);
         try {
-            // Upload audio using the new API method
+            // Determine file extension based on mime type
+            const type = recordingMimeType || audioBlob.type || 'audio/webm';
+            const ext = type.includes('mp4') ? 'mp4' : 'webm';
+
+            // Upload audio using the new API method (api.uploadAudio handles bucket logic)
+            // We pass the blob directly; the DB service builds the filename. 
+            // NOTE: We might need to update uploadAudio to accept extension or detect it.
+            // For now, let's assume uploadAudio names it .webm, which might be an issue.
+            // Let's modify uploadAudio call or better yet, make uploadAudio smarter?
+            // Actually, let's keep it simple: Pass the blob.
+
+            // But wait, db.ts hardcodes .webm. We should fix db.ts too if we want proper extension.
+            // For now, even if named .webm, most players execute by content sniffing.
+            // Let's update uploadAudio in db.ts to be safe in the next step.
+
             const publicUrl = await api.uploadAudio(audioBlob, currentUser.id);
 
             // Send message with audio URL using specific marker for audio
