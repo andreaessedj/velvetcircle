@@ -96,10 +96,10 @@ function extractAmount(payload) {
 function parseCreditsPackMap() {
   const fallback = {
     "f4ec730844": 10, // 10€
-    "5e4bbc60c9": 24, // 20€
-    "01e0915950": 36, // 30€
-    "24bc25a629": 50, // 40€
-    "fa098d3767": 65  // 50€
+    "5e4bbc60c9": 21, // 20€
+    "01e0915950": 32, // 30€
+    "24bc25a629": 44, // 40€
+    "fa098d3767": 56  // 50€
   };
 
   const raw = process.env.CREDITS_PACK_MAP;
