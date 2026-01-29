@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User, PrivateMessage } from '../types';
 import { api } from '../services/db';
-import { X, Clock, Send, Loader, Gamepad2, Sparkles, Flame, Zap, Flower, Coins, Image as ImageIcon, ZapOff, Plus, Mic, Square, Play, Pause } from 'lucide-react';
+import { X, Clock, Send, Loader, Gamepad2, Sparkles, Flame, Zap, Flower, Coins, Image as ImageIcon, ZapOff, Plus, Mic, Square, Play, Pause, ArrowUp, ArrowDown } from 'lucide-react';
 import EphemeralMoment from './features/EphemeralMoment';
 import { useTranslation } from 'react-i18next';
 import { AudioRecorder } from '../utils/audioHelpers';
@@ -93,6 +93,16 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
             isInitialLoad.current = false;
         }
     }, [messages, currentUser.id]);
+
+    const scrollToTop = () => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
+    const scrollToBottom = () => {
+        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
 
     const handleSendMessage = async (text = newMessage, isBlackRose = false, imageUrl?: string, isEphemeral = isEphemeralMode) => {
         if (!text.trim() && !imageUrl) return;
@@ -405,8 +415,8 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
     };
 
     return (
-        <div className="fixed inset-x-0 top-6 bottom-6 z-[1000] bg-black/80 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-6 animate-fade-in">
-            <div className="bg-neutral-900 w-full max-w-lg h-[90vh] md:h-[600px] border border-neutral-800 shadow-2xl flex flex-col">
+        <div className="fixed inset-0 z-[1000] bg-black/80 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-6 animate-fade-in">
+            <div className="bg-neutral-900 w-full md:max-w-lg h-full md:h-[600px] border border-neutral-800 shadow-2xl flex flex-col relative">
                 <input
                     type="file"
                     ref={fileInputRef}
@@ -416,7 +426,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                 />
 
                 {/* Chat Header */}
-                <div className="p-4 bg-neutral-950 border-b border-neutral-800 flex justify-between items-center">
+                <div className="p-4 bg-neutral-950 border-b border-neutral-800 flex justify-between items-center sticky top-0 z-40 shadow-sm">
                     <div className="flex items-center gap-3">
                         <img src={targetUser.avatar} className="w-10 h-10 rounded-full border border-neutral-700 object-cover" alt={targetUser.name} />
                         <div>
@@ -427,7 +437,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                             </div>
                         </div>
                     </div>
-                    <button onClick={onClose} className="text-neutral-500 hover:text-white transition-colors">
+                    <button onClick={onClose} className="p-2 text-neutral-400 hover:text-white bg-neutral-900/50 rounded-full transition-colors active:bg-neutral-800">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
@@ -435,8 +445,26 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                 {/* Chat Messages */}
                 <div
                     ref={scrollContainerRef}
-                    className="flex-1 overflow-y-auto p-4 space-y-4 bg-black/50 custom-scrollbar relative"
+                    className="flex-1 overflow-y-auto p-4 space-y-4 bg-black/50 custom-scrollbar relative scroll-smooth"
                 >
+                    {/* Navigation Arrows */}
+                    <div className="fixed right-4 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-30 opacity-60 hover:opacity-100 transition-opacity">
+                        <button
+                            onClick={scrollToTop}
+                            className="p-2 bg-neutral-800/80 hover:bg-gold-900 text-neutral-400 hover:text-gold-500 rounded-full shadow-lg border border-white/10 backdrop-blur-sm transition-all"
+                            title="Vai all'inizio"
+                        >
+                            <ArrowUp className="w-5 h-5" />
+                        </button>
+                        <button
+                            onClick={scrollToBottom}
+                            className="p-2 bg-neutral-800/80 hover:bg-gold-900 text-neutral-400 hover:text-gold-500 rounded-full shadow-lg border border-white/10 backdrop-blur-sm transition-all"
+                            title="Vai alla fine"
+                        >
+                            <ArrowDown className="w-5 h-5" />
+                        </button>
+                    </div>
+
                     {loading && messages.length === 0 ? (
                         <div className="flex justify-center p-4"><Loader className="animate-spin text-crimson-800" /></div>
                     ) : messages.length === 0 ? (
