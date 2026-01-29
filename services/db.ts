@@ -655,13 +655,23 @@ export const api = {
     file: Blob,
     userId: string
   ): Promise<string> => {
+    // Determine extension and mime type from the blob
+    const mimeType = file.type || 'audio/webm';
+    let ext = 'webm';
+
+    if (mimeType.includes('mp4')) ext = 'mp4';
+    else if (mimeType.includes('mpeg')) ext = 'mp3';
+    else if (mimeType.includes('wav')) ext = 'wav';
+    else if (mimeType.includes('ogg')) ext = 'ogg';
+    else if (mimeType.includes('aac')) ext = 'aac';
+
     // Usiamo la stessa cartella 'audio' nel bucket 'vault' esistente
-    const fileName = `audio/${userId}_${Date.now()}.webm`;
+    const fileName = `audio/${userId}_${Date.now()}.${ext}`;
 
     const { error: uploadError } = await supabase.storage
       .from("vault")
       .upload(fileName, file, {
-        contentType: 'audio/webm',
+        contentType: mimeType,
         cacheControl: '3600',
         upsert: true
       });
