@@ -651,6 +651,30 @@ export const api = {
     }
   },
 
+  uploadAudio: async (
+    file: Blob,
+    userId: string
+  ): Promise<string> => {
+    // Usiamo la stessa cartella 'audio' nel bucket 'vault' esistente
+    const fileName = `audio/${userId}_${Date.now()}.webm`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("vault")
+      .upload(fileName, file, {
+        contentType: 'audio/webm',
+        cacheControl: '3600',
+        upsert: true
+      });
+
+    if (uploadError) {
+      console.error("Audio upload error:", uploadError);
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage.from("vault").getPublicUrl(fileName);
+    return data.publicUrl;
+  },
+
   uploadVaultPhoto: async (
     file: File,
     userId: string,
