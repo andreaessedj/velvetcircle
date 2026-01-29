@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User, PrivateMessage } from '../types';
 import { api } from '../services/db';
-import { X, Clock, Send, Loader, Gamepad2, Sparkles, Flame, Zap, Flower, Coins, Image as ImageIcon, ZapOff, Plus } from 'lucide-react';
+import { X, Clock, Send, Loader, Gamepad2, Sparkles, Flame, Zap, Flower, Coins, Image as ImageIcon, ZapOff, Plus, Mic, Square, Play, Pause } from 'lucide-react';
 import EphemeralMoment from './features/EphemeralMoment';
 import { useTranslation } from 'react-i18next';
 
@@ -30,6 +30,15 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
     const [showActions, setShowActions] = useState(false);
     const [fullScreenPhoto, setFullScreenPhoto] = useState<string | null>(null);
     const isInitialLoad = useRef(true);
+
+    // Audio Recording States
+    const [isRecording, setIsRecording] = useState(false);
+    const [recordingDuration, setRecordingDuration] = useState(0);
+    const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+    const [uploadingAudio, setUploadingAudio] = useState(false);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<Blob[]>([]);
+    const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     // Fetch and Poll messages
     useEffect(() => {
@@ -189,6 +198,89 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
         }
     };
 
+    // Audio Recording Functions
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream);
+            mediaRecorderRef.current = mediaRecorder;
+            audioChunksRef.current = [];
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    audioChunksRef.current.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                setAudioBlob(audioBlob);
+                stream.getTracks().forEach(track => track.stop());
+            };
+
+            mediaRecorder.start();
+            setIsRecording(true);
+            setRecordingDuration(0);
+
+            // Timer per durata registrazione
+            recordingIntervalRef.current = setInterval(() => {
+                setRecordingDuration(prev => {
+                    const newDuration = prev + 1;
+                    // Stop automatico a 60 secondi
+                    if (newDuration >= 60) {
+                        stopRecording();
+                    }
+                    return newDuration;
+                });
+            }, 1000);
+
+        } catch (error) {
+            console.error('Error accessing microphone:', error);
+            alert('Impossibile accedere al microfono. Verifica i permessi del browser.');
+        }
+    };
+
+    const stopRecording = () => {
+        if (mediaRecorderRef.current && isRecording) {
+            mediaRecorderRef.current.stop();
+            setIsRecording(false);
+            if (recordingIntervalRef.current) {
+                clearInterval(recordingIntervalRef.current);
+                recordingIntervalRef.current = null;
+            }
+        }
+    };
+
+    const cancelRecording = () => {
+        stopRecording();
+        setAudioBlob(null);
+        setRecordingDuration(0);
+        audioChunksRef.current = [];
+    };
+
+    const sendAudioMessage = async () => {
+        if (!audioBlob) return;
+
+        setUploadingAudio(true);
+        try {
+            // Upload audio using the new API method
+            const publicUrl = await api.uploadAudio(audioBlob, currentUser.id);
+
+            // Send message with audio URL using specific marker for audio
+            await handleSendMessage(`:::AUDIO|${recordingDuration}:::`, false, publicUrl);
+
+            // Reset audio state
+            setAudioBlob(null);
+            setRecordingDuration(0);
+            audioChunksRef.current = [];
+        } catch (error) {
+            console.error('Error uploading audio:', error);
+            alert('Errore durante l\'invio del messaggio audio.');
+        } finally {
+            setUploadingAudio(false);
+        }
+    };
+
 
 
     // Renderizza il contenuto interno del messaggio (Body)
@@ -256,7 +348,25 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
             );
         }
 
-        // 3. Regular Message / Image / Ephemeral
+        // 3. Audio Messages
+        if (content.startsWith(':::AUDIO|')) {
+            const parts = content.split('|');
+            const duration = parts[1]?.replace(':::', '');
+
+            return (
+                <div className="mt-1 mb-1 p-3 border border-neutral-700 bg-neutral-900/50 rounded-lg flex items-center gap-3 min-w-[200px]">
+                    <div className="w-10 h-10 rounded-full bg-crimson-900/20 flex items-center justify-center border border-crimson-900/30">
+                        <Mic className="w-5 h-5 text-crimson-500" />
+                    </div>
+                    <div className="flex-1">
+                        <audio controls src={imageUrl} className="w-full h-8 max-w-[200px]" />
+                    </div>
+                    <span className="text-[10px] text-neutral-500">{duration}s</span>
+                </div>
+            );
+        }
+
+        // 4. Regular Message / Image / Ephemeral
         return (
             <div className={isBlackRose ? 'pl-2' : ''}>
                 {isBlackRose && (
@@ -390,6 +500,22 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                         </button>
 
                         <button
+                            onClick={() => {
+                                if (!isRecording && !audioBlob) {
+                                    startRecording();
+                                    setShowActions(false);
+                                }
+                            }}
+                            disabled={uploadingAudio}
+                            className="flex flex-col items-center justify-center min-w-[70px] p-3 bg-neutral-900 text-neutral-500 border border-neutral-800 hover:border-crimson-800 hover:text-crimson-500 transition-all gap-1 rounded-xl relative"
+                            title="Invia Audio (Beta)"
+                        >
+                            <Mic className="w-4 h-4" />
+                            <span className="text-[9px] uppercase font-bold">Audio</span>
+                            <span className="absolute -top-1 -right-1 bg-crimson-600 text-white text-[8px] font-bold px-1 rounded-full animate-pulse">BETA</span>
+                        </button>
+
+                        <button
                             onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
@@ -458,31 +584,78 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
 
                     {/* Main Input Row */}
                     <div className="flex gap-2 items-center">
-                        <button
-                            onClick={() => setShowActions(!showActions)}
-                            className={`p-3 rounded-xl border transition-all flex items-center justify-center ${showActions ? 'bg-crimson-900 border-crimson-700 text-white rotate-45' : 'bg-neutral-900 border-neutral-800 text-neutral-500 hover:text-white'}`}
-                        >
-                            <Plus className="w-5 h-5" />
-                        </button>
+                        {isRecording || audioBlob ? (
+                            <div className="flex-1 bg-neutral-900 border border-crimson-900/50 rounded-xl p-2 flex items-center justify-between animate-fade-in">
+                                {isRecording ? (
+                                    <div className="flex items-center gap-3 px-2">
+                                        <div className="w-3 h-3 rounded-full bg-crimson-500 animate-pulse" />
+                                        <span className="text-crimson-400 font-mono font-bold animate-pulse">{recordingDuration}s / 60s</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-3 px-2">
+                                        <div className="w-3 h-3 rounded-full bg-green-500" />
+                                        <span className="text-white font-mono font-bold">Audio Ready ({recordingDuration}s)</span>
+                                    </div>
+                                )}
 
-                        <div className="flex-1 relative">
-                            <input
-                                type="text"
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage(newMessage, sendingBlackRose)}
-                                placeholder={t('chat.write_placeholder')}
-                                className="w-full bg-black border border-neutral-800 text-white px-4 py-3 focus:border-crimson-900 outline-none font-sans rounded-xl text-sm"
-                            />
-                        </div>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={cancelRecording}
+                                        className="p-2 text-neutral-400 hover:text-white transition-colors"
+                                        title="Annulla"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
 
-                        <button
-                            onClick={() => handleSendMessage(newMessage, sendingBlackRose)}
-                            disabled={!newMessage.trim()}
-                            className={`p-3 rounded-xl transition-all disabled:opacity-50 text-white shadow-lg ${sendingBlackRose ? 'bg-gold-600 text-black hover:bg-gold-500 shadow-gold-500/20' : 'bg-crimson-900 hover:bg-crimson-800 shadow-crimson-900/20'}`}
-                        >
-                            <Send className="w-5 h-5" />
-                        </button>
+                                    {isRecording ? (
+                                        <button
+                                            onClick={stopRecording}
+                                            className="p-2 bg-crimson-900/50 text-crimson-200 rounded-lg hover:bg-crimson-900 transition-colors"
+                                            title="Stop Registrazione"
+                                        >
+                                            <Square className="w-5 h-5 fill-current" />
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={sendAudioMessage}
+                                            disabled={uploadingAudio}
+                                            className="p-2 bg-green-900/50 text-green-200 rounded-lg hover:bg-green-900 transition-colors"
+                                            title="Invia Audio"
+                                        >
+                                            {uploadingAudio ? <Loader className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                <button
+                                    onClick={() => setShowActions(!showActions)}
+                                    className={`p-3 rounded-xl border transition-all flex items-center justify-center ${showActions ? 'bg-crimson-900 border-crimson-700 text-white rotate-45' : 'bg-neutral-900 border-neutral-800 text-neutral-500 hover:text-white'}`}
+                                >
+                                    <Plus className="w-5 h-5" />
+                                </button>
+
+                                <div className="flex-1 relative">
+                                    <input
+                                        type="text"
+                                        value={newMessage}
+                                        onChange={(e) => setNewMessage(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleSendMessage(newMessage, sendingBlackRose)}
+                                        placeholder={t('chat.write_placeholder')}
+                                        className="w-full bg-black border border-neutral-800 text-white px-4 py-3 focus:border-crimson-900 outline-none font-sans rounded-xl text-sm"
+                                    />
+                                </div>
+
+                                <button
+                                    onClick={() => handleSendMessage(newMessage, sendingBlackRose)}
+                                    disabled={!newMessage.trim()}
+                                    className={`p-3 rounded-xl transition-all disabled:opacity-50 text-white shadow-lg ${sendingBlackRose ? 'bg-gold-600 text-black hover:bg-gold-500 shadow-gold-500/20' : 'bg-crimson-900 hover:bg-crimson-800 shadow-crimson-900/20'}`}
+                                >
+                                    <Send className="w-5 h-5" />
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
 
