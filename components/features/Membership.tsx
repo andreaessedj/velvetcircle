@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { User, InviteCode } from '../../types';
 import { api } from '../../services/db';
-import { Crown, Check, Star, Gem, Heart, RefreshCw, CalendarClock, Key, Copy, Coins, CreditCard, ArrowRight, Wallet, X, AlertTriangle } from 'lucide-react';
+import { Crown, Check, Star, Gem, Heart, RefreshCw, CalendarClock, Key, Copy, Coins, CreditCard, ArrowRight, Wallet, X, AlertTriangle, Radar } from 'lucide-react';
 
 interface MembershipProps {
     currentUser: User;
@@ -118,7 +118,7 @@ const Membership: React.FC<MembershipProps> = ({ currentUser, onRefreshUser }) =
 
                         <div className="w-full space-y-4 mb-10">
                             {[
-                                { icon: Star, text: t('membership.vip_features.oracle') },
+                                { icon: Radar, text: t('membership.vip_features.radar_tracking') },
                                 { icon: Star, text: t('membership.vip_features.velvet_key') },
                                 { icon: Star, text: t('membership.vip_features.shadows') },
                                 { icon: Crown, text: t('membership.vip_features.badge') }
