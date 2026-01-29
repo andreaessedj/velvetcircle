@@ -367,54 +367,6 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                         })
                     )}
                     <div ref={chatEndRef} />
-
-                    {/* Card Menu Overlay */}
-                    {showCardMenu && (
-                        <div className="absolute bottom-2 left-4 right-4 bg-neutral-900 border border-crimson-900 rounded-lg shadow-2xl p-4 animate-fade-in z-20">
-                            <div className="flex justify-between items-center mb-4">
-                                <h4 className="text-white font-serif flex items-center gap-2"><Gamepad2 className="w-4 h-4 text-crimson-500" /> Velvet Cards</h4>
-                                <button onClick={() => setShowCardMenu(false)}><X className="w-4 h-4 text-neutral-500" /></button>
-                            </div>
-                            <div className="grid grid-cols-3 gap-3">
-                                <button onClick={() => handlePlayCard('SOFT')} className="p-3 bg-pink-900/20 hover:bg-pink-900/40 border border-pink-900/50 rounded flex flex-col items-center gap-2 transition-colors">
-                                    <Sparkles className="w-5 h-5 text-pink-400" />
-                                    <span className="text-[10px] uppercase font-bold text-pink-300">Soft</span>
-                                </button>
-                                <button onClick={() => handlePlayCard('INTENSE')} className="p-3 bg-crimson-900/20 hover:bg-crimson-900/40 border border-crimson-900/50 rounded flex flex-col items-center gap-2 transition-colors">
-                                    <Flame className="w-5 h-5 text-crimson-500" />
-                                    <span className="text-[10px] uppercase font-bold text-crimson-400">Intense</span>
-                                </button>
-                                <button onClick={() => handlePlayCard('DARE')} className="p-3 bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-900/50 rounded flex flex-col items-center gap-2 transition-colors">
-                                    <Zap className="w-5 h-5 text-yellow-500" />
-                                    <span className="text-[10px] uppercase font-bold text-yellow-400">Dare</span>
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Tip Menu Overlay */}
-                    {showTipMenu && (
-                        <div className="absolute bottom-2 left-4 right-4 bg-neutral-900 border border-yellow-600 rounded-lg shadow-2xl p-4 animate-fade-in z-20">
-                            <div className="flex justify-between items-center mb-4">
-                                <h4 className="text-white font-serif flex items-center gap-2"><Coins className="w-4 h-4 text-yellow-500" /> {t('chat.send_tip')}</h4>
-                                <button onClick={() => setShowTipMenu(false)}><X className="w-4 h-4 text-neutral-500" /></button>
-                            </div>
-                            <p className="text-xs text-neutral-400 mb-4">{t('chat.select_tip_amount', { name: targetUser.name })}</p>
-                            <div className="grid grid-cols-4 gap-2">
-                                {[10, 50, 100, 500].map(amount => (
-                                    <button
-                                        key={amount}
-                                        onClick={() => handleSendTip(amount)}
-                                        disabled={sendingTip}
-                                        className="p-3 bg-neutral-800 hover:bg-yellow-900/30 border border-neutral-700 hover:border-yellow-500 rounded flex flex-col items-center justify-center gap-1 transition-colors"
-                                    >
-                                        <span className="text-yellow-500 font-bold text-lg">{amount}</span>
-                                        <span className="text-[9px] uppercase text-neutral-500">{t('chat.credits_indicator')}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
                 </div>
 
                 {/* Chat Input */}
@@ -533,6 +485,68 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                         </button>
                     </div>
                 </div>
+
+                {/* Card Menu Overlay - Fixed position */}
+                {showCardMenu && (
+                    <>
+                        {/* Backdrop */}
+                        <div
+                            className="absolute inset-0 bg-black/60 backdrop-blur-sm z-25 animate-fade-in"
+                            onClick={() => setShowCardMenu(false)}
+                        />
+                        <div className="absolute bottom-20 md:bottom-24 left-4 right-4 bg-neutral-900 border border-crimson-900 rounded-lg shadow-2xl p-4 animate-fade-in z-30">
+                            <div className="flex justify-between items-center mb-4">
+                                <h4 className="text-white font-serif flex items-center gap-2"><Gamepad2 className="w-4 h-4 text-crimson-500" /> Velvet Cards</h4>
+                                <button onClick={() => setShowCardMenu(false)}><X className="w-4 h-4 text-neutral-500" /></button>
+                            </div>
+                            <div className="grid grid-cols-3 gap-3">
+                                <button onClick={() => handlePlayCard('SOFT')} className="p-3 bg-pink-900/20 hover:bg-pink-900/40 border border-pink-900/50 rounded flex flex-col items-center gap-2 transition-colors">
+                                    <Sparkles className="w-5 h-5 text-pink-400" />
+                                    <span className="text-[10px] uppercase font-bold text-pink-300">Soft</span>
+                                </button>
+                                <button onClick={() => handlePlayCard('INTENSE')} className="p-3 bg-crimson-900/20 hover:bg-crimson-900/40 border border-crimson-900/50 rounded flex flex-col items-center gap-2 transition-colors">
+                                    <Flame className="w-5 h-5 text-crimson-500" />
+                                    <span className="text-[10px] uppercase font-bold text-crimson-400">Intense</span>
+                                </button>
+                                <button onClick={() => handlePlayCard('DARE')} className="p-3 bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-900/50 rounded flex flex-col items-center gap-2 transition-colors">
+                                    <Zap className="w-5 h-5 text-yellow-500" />
+                                    <span className="text-[10px] uppercase font-bold text-yellow-400">Dare</span>
+                                </button>
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                {/* Tip Menu Overlay - Fixed position */}
+                {showTipMenu && (
+                    <>
+                        {/* Backdrop */}
+                        <div
+                            className="absolute inset-0 bg-black/60 backdrop-blur-sm z-25 animate-fade-in"
+                            onClick={() => setShowTipMenu(false)}
+                        />
+                        <div className="absolute bottom-20 md:bottom-24 left-4 right-4 bg-neutral-900 border border-yellow-600 rounded-lg shadow-2xl p-4 animate-fade-in z-30">
+                            <div className="flex justify-between items-center mb-4">
+                                <h4 className="text-white font-serif flex items-center gap-2"><Coins className="w-4 h-4 text-yellow-500" /> {t('chat.send_tip')}</h4>
+                                <button onClick={() => setShowTipMenu(false)}><X className="w-4 h-4 text-neutral-500" /></button>
+                            </div>
+                            <p className="text-xs text-neutral-400 mb-4">{t('chat.select_tip_amount', { name: targetUser.name })}</p>
+                            <div className="grid grid-cols-4 gap-2">
+                                {[10, 50, 100, 500].map(amount => (
+                                    <button
+                                        key={amount}
+                                        onClick={() => handleSendTip(amount)}
+                                        disabled={sendingTip}
+                                        className="p-3 bg-neutral-800 hover:bg-yellow-900/30 border border-neutral-700 hover:border-yellow-500 rounded flex flex-col items-center justify-center gap-1 transition-colors"
+                                    >
+                                        <span className="text-yellow-500 font-bold text-lg">{amount}</span>
+                                        <span className="text-[9px] uppercase text-neutral-500">{t('chat.credits_indicator')}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </>
+                )}
             </div>
 
             {/* Photo Fullscreen Overlay */}
