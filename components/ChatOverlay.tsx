@@ -273,9 +273,10 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
             setAudioBlob(null);
             setRecordingDuration(0);
             audioChunksRef.current = [];
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error uploading audio:', error);
-            alert('Errore durante l\'invio del messaggio audio.');
+            // Show detailed error to user for debugging
+            alert(`Errore upload: ${error.message || JSON.stringify(error)}`);
         } finally {
             setUploadingAudio(false);
         }
