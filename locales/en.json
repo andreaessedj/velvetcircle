@@ -179,7 +179,7 @@
     },
     "inbox": {
         "title": "Messages",
-        "desc": "Your ephemeral connections. Messages self-destruct after 36 hours.",
+        "desc": "Your private connections.",
         "empty": "Your inbox is empty. Start exploring the Radar or Member Directory.",
         "archived": "Archived (Expired)",
         "active": "Active Conversation",
@@ -268,7 +268,7 @@
         "tip_error": "Error sending tip",
         "tip_success": "Tip of {{amount}} credits sent to {{name}}!",
         "priority_message": "Priority Message",
-        "ephemeral_36h": "Ephemeral (36h)",
+        "ephemeral_36h": "Ephemeral",
         "empty_conv": "The conversation is empty.",
         "break_ice_card": "Break the Ice with a Card",
         "send_tip": "Send Tip",
@@ -369,7 +369,7 @@
         "anonymous": "Anonymous Member"
     },
     "secret_circles": {
-        "ephemeral_timer": "Ephemeral Chat (36h)",
+        "ephemeral_timer": "Ephemeral Chat",
         "key_code": "Key Code",
         "start_conv": "Start a secret conversation...",
         "input_placeholder": "Write a message in the shadow...",
@@ -509,7 +509,7 @@
             },
             "section2": {
                 "title": "Ephemeral Protocol (Chat)",
-                "content": "All private messages have an expiration time of 36 hours, after which they are deleted from our systems. Public chat (\"The Club\") is not saved in any database; messages exist only in the volatile memory of the current session."
+                "content": "Choose darkness with confidence. Private messages remain encrypted and under your control. Public chat (\"The Club\") is not saved in any database; messages exist only in the volatile memory of the current session."
             },
             "section3": {
                 "title": "GDPR and Rights",
@@ -521,7 +521,7 @@
         "title": "The Confessional",
         "desc": "\"Give words to your desire and you will make it real. Here anonymity is sacred.\"",
         "new_btn": "New Confession",
-        "vip_reserved": "Reserved Confession (VIP)",
+        "vip_reserved": "Share your Secret",
         "placeholder": "Tell your secret fantasy...",
         "send_btn": "Send",
         "empty": "No secrets revealed yet. Be the first.",

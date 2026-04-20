@@ -84,21 +84,12 @@ const Mentorship: React.FC<MentorshipProps> = ({ currentUser }) => {
 
                 <div className="flex flex-col md:flex-row justify-center gap-4 relative z-10">
                     {!showForm && (
-                        currentUser.isVip ? (
-                            <button
-                                onClick={() => setShowForm(true)}
-                                className="bg-crimson-900 text-white px-8 py-3 font-serif uppercase tracking-widest text-xs hover:bg-crimson-800 transition-all border border-crimson-700 shadow-[0_0_15px_rgba(185,28,28,0.2)] rounded"
-                            >
-                                {t('confessional.new_btn')}
-                            </button>
-                        ) : (
-                            <button
-                                disabled
-                                className="bg-neutral-800/50 text-neutral-600 px-8 py-3 font-serif uppercase tracking-widest text-xs border border-neutral-800 flex items-center gap-2 opacity-50 rounded"
-                            >
-                                <Lock className="w-3 h-3" /> {t('confessional.vip_reserved')}
-                            </button>
-                        )
+                        <button
+                            onClick={() => setShowForm(true)}
+                            className="bg-crimson-900 text-white px-8 py-3 font-serif uppercase tracking-widest text-xs hover:bg-crimson-800 transition-all border border-crimson-700 shadow-[0_0_15px_rgba(185,28,28,0.2)] rounded"
+                        >
+                            {t('confessional.new_btn')}
+                        </button>
                     )}
                 </div>
 

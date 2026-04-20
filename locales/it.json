@@ -179,7 +179,7 @@
     },
     "inbox": {
         "title": "Messaggi",
-        "desc": "Le tue connessioni effimere. I messaggi si autodistruggono dopo 36 ore.",
+        "desc": "Le tue connessioni riservate.",
         "empty": "La tua casella è vuota. Inizia a esplorare il Radar o la Directory Membri.",
         "archived": "Archiviata (Scaduta)",
         "active": "Conversazione Attiva",
@@ -268,7 +268,7 @@
         "tip_error": "Errore invio mancia",
         "tip_success": "Mancia di {{amount}} crediti inviata a {{name}}!",
         "priority_message": "Priority Message",
-        "ephemeral_36h": "Effimera (36h)",
+        "ephemeral_36h": "Effimera",
         "empty_conv": "La conversazione è vuota.",
         "break_ice_card": "Rompi il Ghiaccio con una Carta",
         "send_tip": "Invia Mancia",
@@ -369,7 +369,7 @@
         "anonymous": "Membro Anonimo"
     },
     "secret_circles": {
-        "ephemeral_timer": "Chat Effimera (36h)",
+        "ephemeral_timer": "Chat Effimera",
         "key_code": "Codice Chiave",
         "start_conv": "Inizia una conversazione segreta...",
         "input_placeholder": "Scrivi un messaggio nell'ombra...",
@@ -509,7 +509,7 @@
             },
             "section2": {
                 "title": "Protocollo Effimero (Chat)",
-                "content": "Tutti i messaggi privati hanno un tempo di scadenza di 36 ore, dopo il quale vengono eliminati dai nostri sistemi. La chat pubblica (\"The Club\") non viene salvata in alcun database; i messaggi esistono solo nella memoria volatile della sessione corrente."
+                "content": "Scegli l'oscurità con fiducia. I messaggi privati restano crittografati e sotto il tuo controllo. La chat pubblica (\"The Club\") non viene salvata in alcun database; i messaggi esistono solo nella memoria volatile della sessione corrente."
             },
             "section3": {
                 "title": "GDPR e Diritti",
@@ -521,7 +521,7 @@
         "title": "Il Confessionale",
         "desc": "\"Date parole al vostro desiderio e lo renderete reale. Qui l'anonimato è sacro.\"",
         "new_btn": "Nuova Confessione",
-        "vip_reserved": "Confessione Riservata (VIP)",
+        "vip_reserved": "Condividi il tuo Segreto",
         "placeholder": "Racconta la tua fantasia segreta...",
         "send_btn": "Invia",
         "empty": "Ancore nessun segreto svelato. Sii il primo.",

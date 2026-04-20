@@ -1224,14 +1224,12 @@ export const api = {
     myId: string,
     otherId: string
   ): Promise<PrivateMessage[]> => {
-    const cutoff = new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString();
     const { data, error } = await supabase
       .from("private_messages")
       .select("*")
       .or(
         `and(sender_id.eq.${myId},receiver_id.eq.${otherId}),and(sender_id.eq.${otherId},receiver_id.eq.${myId})`
       )
-      .gt("created_at", cutoff)
       .order("created_at", { ascending: true });
     return error
       ? []
@@ -1243,17 +1241,11 @@ export const api = {
   },
 
   getUnreadMessageCount: async (userId: string): Promise<number> => {
-    const cutoff = new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString();
-
-    // Trigger cleanup via RPC (SECURITY DEFINER)
-    supabase.rpc('cleanup_old_messages').then();
-
     const { count, error } = await supabase
       .from("private_messages")
       .select("id", { count: 'exact', head: true })
       .eq("receiver_id", userId)
-      .eq("is_read", false)
-      .gt("created_at", cutoff);
+      .eq("is_read", false);
 
     if (error) {
       console.error("Error fetching unread count:", error);
@@ -1332,14 +1324,11 @@ export const api = {
       .in("id", partnerIds)
       .eq("is_banned", false);
 
-    // Recupera i conteggi non letti per questi partner (con cutoff 36h)
-    const cutoff = new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString();
     const { data: unreadData } = await supabase
       .from("private_messages")
       .select("sender_id")
       .eq("receiver_id", user.id)
-      .not("is_read", "is", true)
-      .gt("created_at", cutoff);
+      .not("is_read", "is", true);
 
     const unreadMap = (unreadData || []).reduce((acc: any, curr: any) => {
       acc[curr.sender_id] = (acc[curr.sender_id] || 0) + 1;
@@ -1504,13 +1493,10 @@ export const api = {
   },
 
   getCircleMessages: async (circleId: string): Promise<any[]> => {
-    const thirtySixHoursAgo = new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString();
-
     const { data, error } = await supabase
       .from('circle_messages')
       .select('*, profile:profiles(*)')
       .eq('circle_id', circleId)
-      .gt('created_at', thirtySixHoursAgo)
       .order('created_at', { ascending: true });
 
     if (error) return [];

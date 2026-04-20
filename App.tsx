@@ -87,18 +87,7 @@ const App: React.FC = () => {
 
 
 
-  const BetaMarquee = ({ position }: { position: 'top' | 'bottom' }) => (
-    <div className={`fixed ${position}-0 left-0 right-0 beta-banner z-[9999] pointer-events-none opacity-90 shadow-2xl`}>
-      <div className={position === 'top' ? 'animate-marquee' : 'animate-marquee-reverse'}>
-        {[...Array(20)].map((_, i) => (
-          <span key={i} className="mx-8 flex items-center gap-3">
-            <span className="w-2 h-2 bg-white rounded-full animate-pulse shadow-[0_0_5px_white]" />
-            {t('app.beta_test')} • {t('app.early_access')} • {t('app.report_bugs')} • {t('app.work_in_progress')}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
+
 
   if (loadingSession) {
     return <div className="min-h-screen bg-black flex items-center justify-center text-crimson-700 font-serif">{t('app.loading')}</div>;
@@ -106,9 +95,6 @@ const App: React.FC = () => {
 
   return (
     <div className="antialiased bg-black min-h-screen text-neutral-200">
-      <BetaMarquee position="top" />
-
-
       {viewState === 'LANDING' && (
         <LandingPage onEnter={handleEnter} />
       )}
