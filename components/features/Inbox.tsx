@@ -28,13 +28,7 @@ const Inbox: React.FC<InboxProps> = ({ currentUser, onOpenChat }) => {
         loadInbox();
     }, [currentUser.id]);
 
-    const isExpired = (dateStr: string) => {
-        const msgDate = new Date(dateStr);
-        const now = new Date();
-        const diffMs = now.getTime() - msgDate.getTime();
-        const diffHours = diffMs / (1000 * 60 * 60);
-        return diffHours > 36;
-    };
+
 
     if (loading) return <div className="flex justify-center p-20"><Loader className="animate-spin text-crimson-600 w-10 h-10" /></div>;
 
@@ -47,10 +41,7 @@ const Inbox: React.FC<InboxProps> = ({ currentUser, onOpenChat }) => {
                     </h2>
                     <p className="text-neutral-500 text-sm max-w-xl">{t('inbox.desc')}</p>
                 </div>
-                <div className="bg-neutral-900/50 px-4 py-2 rounded-lg border border-neutral-800 flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-crimson-600" />
-                    <span className="text-[10px] uppercase font-black tracking-widest text-neutral-400">36H TTL</span>
-                </div>
+
             </div>
 
             <div className="grid grid-cols-1 gap-4">
@@ -61,7 +52,6 @@ const Inbox: React.FC<InboxProps> = ({ currentUser, onOpenChat }) => {
                 )}
 
                 {conversations.map((conv, idx) => {
-                    const expired = isExpired(conv.last_message_at);
                     const isPriority = conv.has_black_rose;
 
                     return (
@@ -85,7 +75,7 @@ const Inbox: React.FC<InboxProps> = ({ currentUser, onOpenChat }) => {
                                 <img
                                     src={conv.partner.avatar}
                                     alt={conv.partner.name}
-                                    className={`relative w-16 h-16 rounded-full object-cover border-2 shadow-2xl transition-all duration-500 ${expired ? 'border-neutral-800 grayscale scale-95 opacity-50' : isPriority ? 'border-gold-500 group-hover:scale-105' : 'border-neutral-800 group-hover:border-crimson-600 group-hover:scale-105'}`}
+                                    className={`relative w-16 h-16 rounded-full object-cover border-2 shadow-2xl transition-all duration-500 ${isPriority ? 'border-gold-500 group-hover:scale-105' : 'border-neutral-800 group-hover:border-crimson-600 group-hover:scale-105'}`}
                                 />
                                 {conv.partner.isVerified && (
                                     <div className="absolute -bottom-0.5 -right-0.5 bg-neutral-950 rounded-full p-1 border border-black shadow-lg">
@@ -96,7 +86,7 @@ const Inbox: React.FC<InboxProps> = ({ currentUser, onOpenChat }) => {
 
                             <div className="flex-1 min-w-0">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-                                    <h3 className={`text-xl font-serif flex items-center gap-3 transition-colors ${expired ? 'text-neutral-600' : isPriority ? 'text-gold-400' : 'text-neutral-100 group-hover:text-white'}`}>
+                                    <h3 className={`text-xl font-serif flex items-center gap-3 transition-colors ${isPriority ? 'text-gold-400' : 'text-neutral-100 group-hover:text-white'}`}>
                                         {conv.partner.name}
                                         {conv.unread_count > 0 && (
                                             <span className="bg-crimson-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse shadow-lg">
@@ -105,16 +95,12 @@ const Inbox: React.FC<InboxProps> = ({ currentUser, onOpenChat }) => {
                                         )}
                                         {isPriority && <span className="text-[8px] bg-gold-600 text-black px-2 py-0.5 rounded-full font-black tracking-widest shadow-lg">BLACK ROSE</span>}
                                     </h3>
-                                    <span className={`text-[9px] uppercase font-black tracking-[0.2em] border px-3 py-1 rounded-full transition-colors ${expired ? 'text-neutral-700 border-neutral-900' : 'text-neutral-500 border-neutral-800 group-hover:text-neutral-300 group-hover:border-neutral-700'}`}>
+                                    <span className="text-[9px] uppercase font-black tracking-[0.2em] border px-3 py-1 rounded-full transition-colors text-neutral-500 border-neutral-800 group-hover:text-neutral-300 group-hover:border-neutral-700">
                                         {t(`roles.${conv.partner.role}`, conv.partner.role.replace('_', ' '))}
                                     </span>
                                 </div>
 
                                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-xs">
-                                    <span className={`flex items-center gap-2 font-bold tracking-tight ${expired ? 'text-neutral-700' : 'text-green-600'}`}>
-                                        <div className={`w-2 h-2 rounded-full ${expired ? 'bg-neutral-800' : 'bg-green-600 animate-pulse border border-green-500/50 shadow-[0_0_8px_rgba(22,163,74,0.5)]'}`}></div>
-                                        {expired ? t('inbox.archived') : t('inbox.active')}
-                                    </span>
                                     <span className="text-neutral-600 flex items-center gap-2 font-mono text-[10px]">
                                         <Clock className="w-3.5 h-3.5 opacity-50" />
                                         {t('inbox.last_contact', { date: new Date(conv.last_message_at).toLocaleDateString(t('common.date_locale', 'it-IT'), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) })}

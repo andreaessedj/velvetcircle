@@ -431,10 +431,6 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ currentUser, targetUser, onCl
                         <img src={targetUser.avatar} className="w-10 h-10 rounded-full border border-neutral-700 object-cover" alt={targetUser.name} />
                         <div>
                             <h3 className="text-white font-serif">{targetUser.name}</h3>
-                            <div className="flex items-center gap-1 text-xs text-crimson-500">
-                                <Clock className="w-3 h-3" />
-                                {t('chat.ephemeral_36h')}
-                            </div>
                         </div>
                     </div>
                     <button onClick={onClose} className="p-2 text-neutral-400 hover:text-white bg-neutral-900/50 rounded-full transition-colors active:bg-neutral-800">

@@ -153,13 +153,7 @@ const SecretCircles: React.FC<SecretCirclesProps> = ({ currentUser }) => {
                         </button>
                         <div>
                             <h2 className="text-xl md:text-2xl font-serif text-white">{selectedCircle.name}</h2>
-                            <div className="flex items-center gap-2">
-                                <span className="text-[10px] text-crimson-500 uppercase font-bold tracking-widest flex items-center gap-1">
-                                    <Clock className="w-3 h-3" /> {t('secret_circles.ephemeral_timer')}
-                                </span>
-                                <span className="text-neutral-600 font-bold">•</span>
                                 <span className="text-[10px] text-neutral-500 uppercase">{selectedCircle.theme}</span>
-                            </div>
                         </div>
                     </div>
 
